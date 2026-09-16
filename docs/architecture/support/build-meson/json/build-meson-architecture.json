@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "build-meson 子系统：NumPy 构建系统",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 580]
+  },
+  "components": [
+    { "id": "dev", "type": "external", "label": "开发者/CI", "sublabel": "pip install .", "pos": [40, 240], "size": [150, 60] },
+    { "id": "root", "type": "frontend", "label": "meson.build", "sublabel": "顶层构建入口", "pos": [290, 200], "size": [180, 70] },
+    { "id": "opt", "type": "security", "label": "meson.options", "sublabel": "blas/cpu-baseline/dispatch", "pos": [290, 340], "size": [180, 70] },
+    { "id": "cpu", "type": "backend", "label": "meson_cpu", "sublabel": "CPU 特性检测/SIMD 分派", "pos": [590, 140], "size": [200, 70] },
+    { "id": "buildutil", "type": "backend", "label": "_build_utils", "sublabel": "Python 构建辅助", "pos": [590, 280], "size": [200, 70] },
+    { "id": "compiler", "type": "external", "label": "C/Cython 编译器", "sublabel": "BLAS/LAPACK", "pos": [930, 240], "size": [180, 70] },
+    { "id": "vendored", "type": "external", "label": "vendored-meson", "sublabel": "第三方 vendored", "pos": [930, 420], "size": [180, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "NumPy 构建配置（本仓库）", "wraps": ["root", "opt", "cpu", "buildutil"] }
+  ],
+  "connections": [
+    { "id": "d-r", "from": "dev", "to": "root", "label": "配置/编译", "variant": "emphasis" },
+    { "id": "r-opt", "from": "root", "to": "opt", "label": "读选项", "labelDy": 24 },
+    { "id": "r-cpu", "from": "root", "to": "cpu", "label": "CPU 分派" },
+    { "id": "r-bu", "from": "root", "to": "buildutil", "label": "代码生成" },
+    { "id": "bu-comp", "from": "buildutil", "to": "compiler", "label": "C 源" },
+    { "id": "cpu-comp", "from": "cpu", "to": "compiler", "label": "多目标编译" },
+    { "id": "r-vend", "from": "root", "to": "vendored", "label": "调用 meson", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "meson.options 暴露 BLAS/LAPACK、线程、SIMD 选项",
+      "meson_cpu 生成 main_config.h 含运行期分派宏",
+      "cpu-baseline=min / cpu-dispatch=max 默认按特性集分派",
+      "vendored-meson 为第三方构建系统副本"
+    ] }
+  ]
+}
