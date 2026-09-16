@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "遗留随机状态（legacy-mtrand）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 480]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "np.random.rand()", "pos": [40, 180], "size": [120, 55] },
+    { "id": "randomstate", "type": "backend", "label": "RandomState", "sublabel": "遗留 API 类", "pos": [250, 80], "size": [160, 60], "tag": "cdef class" },
+    { "id": "legacy-c", "type": "database", "label": "legacy-distributions C", "sublabel": "旧算法兼容", "pos": [250, 240], "size": [160, 55] },
+    { "id": "mt19937", "type": "database", "label": "MT19937", "sublabel": "内部位生成器", "pos": [550, 80], "size": [160, 55] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Cython 层", "wraps": ["randomstate"] },
+    { "kind": "region", "label": "C 层", "wraps": ["legacy-c", "mt19937"] }
+  ],
+  "connections": [
+    { "id": "u-rs", "from": "user", "to": "randomstate", "label": "np.random.rand", "variant": "emphasis" },
+    { "id": "rs-legacy", "from": "randomstate", "to": "legacy-c", "label": "legacy_*", "labelDy": 24 },
+    { "id": "rs-mt", "from": "randomstate", "to": "mt19937", "label": "Capsule" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "核心机制", "items": [
+      "RandomState 是遗留随机数 API，np.random 单例即此类实例",
+      "内部包装 MT19937 BitGenerator，提供兼容旧版本的分布算法",
+      "legacy-distributions.c 实现旧算法（如 Box-Muller 正态），保证向后兼容",
+      "aug_bitgen_t 缓存 gauss 值用于旧版 normal 分布的成对采样"
+    ]}
+  ]
+}

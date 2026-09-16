@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ufunc 对象与归约子系统架构",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1280, 600]
+  },
+  "components": [
+    { "id": "fastcall", "type": "frontend", "label": "fastcall 入口", "sublabel": "ufunc_object.c:4882", "pos": [40, 80], "size": [150, 60] },
+    { "id": "dispatch", "type": "backend", "label": "类型提升与分发", "sublabel": "dispatching.cpp", "pos": [280, 80], "size": [160, 60], "tag": "第一层分发" },
+    { "id": "method", "type": "backend", "label": "ArrayMethod", "sublabel": "选中算子实现", "pos": [520, 80], "size": [150, 60] },
+    { "id": "execute", "type": "backend", "label": "execute_ufunc_loop", "sublabel": "ufunc_object.c:1089", "pos": [760, 80], "size": [170, 60] },
+    { "id": "nditer", "type": "messagebus", "label": "NpyIter 迭代器", "sublabel": "广播/缓冲", "pos": [1020, 80], "size": [160, 60] },
+    { "id": "strided", "type": "backend", "label": "strided_loop 内核", "sublabel": "SIMD 特化", "pos": [1020, 260], "size": [160, 60], "tag": "第二层" },
+    { "id": "reduce", "type": "backend", "label": "归约路径", "sublabel": "reduce/accumulate/reduceat", "pos": [280, 260], "size": [160, 70] },
+    { "id": "reduce-wrap", "type": "backend", "label": "ReduceWrapper", "sublabel": "reduction.c:179", "pos": [520, 260], "size": [150, 60] },
+    { "id": "extobj", "type": "security", "label": "extobj 错误对象", "sublabel": "浮点错误状态", "pos": [760, 260], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "ufunc 对象层", "wraps": ["fastcall", "dispatch", "method", "reduce", "reduce-wrap"] },
+    { "kind": "region", "label": "执行层", "wraps": ["execute", "nditer", "strided", "extobj"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "fastcall", "to": "dispatch", "label": "提升+分发", "variant": "emphasis", "labelDy": 20 },
+    { "id": "c2", "from": "dispatch", "to": "method", "label": "匹配 loop", "labelDy": 20 },
+    { "id": "c3", "from": "method", "to": "execute", "label": "get_strided_loop", "labelDy": 20 },
+    { "id": "c4", "from": "execute", "to": "nditer", "label": "建迭代器", "labelDy": 20 },
+    { "id": "c5", "from": "nditer", "to": "strided", "label": "dataptrs", "labelDy": 20 },
+    { "id": "c6", "from": "fastcall", "to": "reduce", "label": "归约入口", "variant": "dashed" },
+    { "id": "c7", "from": "reduce", "to": "reduce-wrap", "label": "逐块归约", "labelDy": 20 },
+    { "id": "c8", "from": "reduce-wrap", "to": "execute", "label": "复用执行", "variant": "dashed" },
+    { "id": "c9", "from": "execute", "to": "extobj", "label": "fperr 检查", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "两层分发", "items": ["对象层按 dtype 选 ArrayMethod", "内层经 SIMD 按 ISA 选内核"] },
+    { "dot": "cyan", "title": "归约四操作", "items": ["reduce/accumulate/reduceat/outer", "identity 决定多轴可重排性"] }
+  ]
+}

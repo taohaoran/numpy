@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "傅里叶变换（fft）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 520]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "np.fft.fft(x)", "pos": [40, 200], "size": [120, 55] },
+    { "id": "pocketfft-py", "type": "backend", "label": "_pocketfft.py", "sublabel": "fft/ifft/rfft 等", "pos": [250, 80], "size": [160, 60], "tag": "NEP-18" },
+    { "id": "helper", "type": "backend", "label": "_helper.py", "sublabel": "fftshift/fftfreq", "pos": [250, 220], "size": [160, 55] },
+    { "id": "umath", "type": "backend", "label": "_pocketfft_umath.cpp", "sublabel": "C++ 包装", "pos": [580, 80], "size": [160, 60] },
+    { "id": "pocketfft-cpp", "type": "database", "label": "pocketfft C++", "sublabel": "vendored 第三方", "pos": [580, 220], "size": [160, 55] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Python 层", "wraps": ["pocketfft-py", "helper"] },
+    { "kind": "region", "label": "C++ 层", "wraps": ["umath", "pocketfft-cpp"] }
+  ],
+  "connections": [
+    { "id": "u-fft", "from": "user", "to": "pocketfft-py", "label": "np.fft.fft", "variant": "emphasis" },
+    { "id": "u-help", "from": "user", "to": "helper", "label": "fftshift", "labelDy": 30, "variant": "emphasis" },
+    { "id": "py-umath", "from": "pocketfft-py", "to": "umath", "label": "pfu.fftn" },
+    { "id": "umath-pf", "from": "umath", "to": "pocketfft-cpp", "label": "调用", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "_raw_fft 是核心内部函数，所有 fft/ifft/rfft/irfft/hfft/ihfft 变体均经此调用",
+      "norm 参数控制归一化：backward（默认）/ortho/forward",
+      "pocketfft C++ 是 vendored 第三方库（Reiner Bauer），不在本项目原创源码内",
+      "float32/complex64 自动提升为 float64/complex128"
+    ]}
+  ]
+}

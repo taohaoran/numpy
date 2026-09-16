@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "typing-stubs 子系统：NumPy 类型注解体系",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1080, 520]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "下游库/用户", "sublabel": "类型标注", "pos": [40, 180], "size": [150, 60] },
+    { "id": "pub", "type": "frontend", "label": "numpy.typing", "sublabel": "公共包再导出", "pos": [300, 150], "size": [200, 70], "tag": "ArrayLike/DTypeLike" },
+    { "id": "proto", "type": "backend", "label": "协议/类型别名", "sublabel": "_typing/_array_like", "pos": [300, 300], "size": [200, 70], "tag": "_SupportsArray" },
+    { "id": "nbit", "type": "backend", "label": "位宽层级", "sublabel": "_nbit_base/_nbit", "pos": [620, 150], "size": [190, 64] },
+    { "id": "shape", "type": "backend", "label": "形状/嵌套序列", "sublabel": "_shape/_nested_sequence", "pos": [620, 280], "size": [190, 64] },
+    { "id": "checker", "type": "external", "label": "mypy/pyright", "sublabel": "外部类型检查器", "pos": [620, 400], "size": [190, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/_typing + numpy/typing（本仓库）", "wraps": ["pub", "proto", "nbit", "shape"] }
+  ],
+  "connections": [
+    { "id": "u-pub", "from": "user", "to": "pub", "label": "导入", "variant": "emphasis" },
+    { "id": "pub-proto", "from": "pub", "to": "proto", "label": "再导出", "labelDy": 26 },
+    { "id": "proto-nbit", "from": "proto", "to": "nbit", "label": "依赖" },
+    { "id": "proto-shape", "from": "proto", "to": "shape", "label": "依赖" },
+    { "id": "pub-chk", "from": "pub", "to": "checker", "label": "注解被检查" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "ArrayLike/DTypeLike 是面向用户的核心类型别名",
+      "_SupportsArray 是 __array__ 协议的运行时检查 Protocol",
+      "使用 PEP 695 泛型语法 NDArray[ScalarT]",
+      "类型注解通常比运行时 API 更严格"
+    ] }
+  ]
+}

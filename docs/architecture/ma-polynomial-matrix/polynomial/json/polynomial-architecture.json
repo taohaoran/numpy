@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "polynomial 子系统：正交多项式族的模板方法体系",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 520]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "族.fit / 算术", "pos": [40, 220], "size": [150, 60] },
+    { "id": "abc", "type": "backend", "label": "ABCPolyBase", "sublabel": "_polybase.py:20", "pos": [290, 180], "size": [200, 90], "tag": "抽象原语缝 _add/_mul/_fit" },
+    { "id": "fam", "type": "security", "label": "六个多项式族", "sublabel": "Polynomial/Chebyshev/Legendre", "pos": [600, 120], "size": [220, 60] },
+    { "id": "fam2", "type": "security", "label": "Laguerre/Hermite/HermiteE", "sublabel": "绑定 staticmethod", "pos": [600, 220], "size": [220, 60] },
+    { "id": "pu", "type": "backend", "label": "polyutils 通用算法", "sublabel": "_fit/_div/_vander_nd", "pos": [600, 360], "size": [220, 60] },
+    { "id": "core", "type": "database", "label": "_core 数组计算", "sublabel": "ndarray 最小二乘", "pos": [940, 220], "size": [180, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/polynomial（本仓库）", "wraps": ["abc", "fam", "fam2", "pu"] }
+  ],
+  "connections": [
+    { "id": "u-abc", "from": "user", "to": "abc", "label": "+ - *  ()", "variant": "emphasis" },
+    { "id": "abc-fam", "from": "abc", "to": "fam", "label": "绑定原语" },
+    { "id": "abc-fam2", "from": "abc", "to": "fam2", "label": "绑定原语" },
+    { "id": "abc-pu", "from": "abc", "to": "pu", "label": "内部复用" },
+    { "id": "pu-core", "from": "pu", "to": "core", "label": "系数运算" },
+    { "id": "fam2-core", "from": "fam2", "to": "core", "label": "求值/拟合", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "ABCPolyBase 把算术特例方法定义为对 _add 等原语的调用",
+      "每个多项式族用 staticmethod 绑定本族原语到类属性",
+      "polyutils 的 _fit/_div 按传入原语参数化复用",
+      "domain→window 区间映射由基类统一处理"
+    ] }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ufunc 浮点错误处理机制",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 480]
+  },
+  "components": [
+    { "id": "seterr", "type": "frontend", "label": "np.seterr", "sublabel": "_ufunc_config.py", "pos": [40, 80], "size": [150, 60] },
+    { "id": "contextvar", "type": "messagebus", "label": "extobj ContextVar", "sublabel": "线程隔离状态", "pos": [260, 80], "size": [160, 60] },
+    { "id": "capsule", "type": "database", "label": "npy_extobj", "sublabel": "bufsize+errmask+pyfunc", "pos": [260, 230], "size": [160, 60] },
+    { "id": "loop", "type": "backend", "label": "ufunc 循环", "sublabel": "执行计算", "pos": [500, 80], "size": [150, 60] },
+    { "id": "fperr", "type": "backend", "label": "fperr 检查", "sublabel": "_check_ufunc_fperr", "pos": [500, 230], "size": [150, 60] },
+    { "id": "handler", "type": "backend", "label": "_error_handler", "sublabel": "六种处理模式", "pos": [730, 80], "size": [160, 70] },
+    { "id": "raise", "type": "security", "label": "FloatingPointError", "sublabel": "raise 模式", "pos": [730, 230], "size": [160, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "错误状态管理", "wraps": ["seterr", "contextvar", "capsule"] },
+    { "kind": "region", "label": "运行时错误处理", "wraps": ["loop", "fperr", "handler", "raise"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "seterr", "to": "contextvar", "label": "写入", "variant": "emphasis", "labelDy": 20 },
+    { "id": "c2", "from": "contextvar", "to": "capsule" },
+    { "id": "c3", "from": "loop", "to": "fperr" },
+    { "id": "c4", "from": "fperr", "to": "capsule", "label": "取 errmask", "variant": "dashed", "labelDy": -20 },
+    { "id": "c5", "from": "fperr", "to": "handler", "label": "分发处理", "labelDy": 20 },
+    { "id": "c6", "from": "handler", "to": "raise" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "六种处理模式", "items": ["ignore/warn/raise/call/print/log", "四类错误各自独立配置"] }
+  ]
+}

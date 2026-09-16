@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "code-gen 子系统：构建期 C 代码生成器",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 520]
+  },
+  "components": [
+    { "id": "build", "type": "external", "label": "meson 构建", "sublabel": "构建期调用", "pos": [40, 220], "size": [160, 60] },
+    { "id": "templ", "type": "backend", "label": ".src 模板机制", "sublabel": "process_src_template + tempita", "pos": [300, 100], "size": [220, 70], "tag": "*.c.src→*.c" },
+    { "id": "umath", "type": "backend", "label": "generate_umath", "sublabel": "Ufunc/TypeDescription 表", "pos": [300, 240], "size": [220, 70] },
+    { "id": "genapi", "type": "backend", "label": "genapi / generate_*_api", "sublabel": "C-API 导出表", "pos": [300, 380], "size": [220, 70] },
+    { "id": "c", "type": "database", "label": "生成 C 源", "sublabel": "勿手改", "pos": [940, 240], "size": [170, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/_core/code_generators + _build_utils（本仓库）", "wraps": ["templ", "umath", "genapi"] }
+  ],
+  "connections": [
+    { "id": "b-t", "from": "build", "to": "templ", "label": "渲染", "variant": "emphasis" },
+    { "id": "b-u", "from": "build", "to": "umath", "label": "生成" },
+    { "id": "b-g", "from": "build", "to": "genapi", "label": "扫头文件" },
+    { "id": "u-c", "from": "umath", "to": "c", "label": "注册表/循环" },
+    { "id": "t-c", "from": "templ", "to": "c", "label": "实例化" },
+    { "id": "g-c", "from": "genapi", "to": "c", "label": "导出表" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      ".src 是 Tempita 模板，构建时渲染为 .c/.h",
+      "generate_umath 由 Ufunc/TD 表生成 ufunc 分发代码",
+      "genapi 扫描 C 头文件 API 标注生成 C-API 导出表",
+      "生成文件不入库、禁止手改"
+    ] }
+  ]
+}

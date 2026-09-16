@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SIMD 抽象层与 CPU 分派",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 440]
+  },
+  "components": [
+    { "id": "cpuid", "type": "frontend", "label": "npy_cpu_init", "sublabel": "CPUID 检测", "pos": [40, 80], "size": [150, 60] },
+    { "id": "features", "type": "database", "label": "CPU 特性表", "sublabel": "npy_cpu_features.c", "pos": [40, 230], "size": [150, 60] },
+    { "id": "npyv", "type": "backend", "label": "npyv_* 抽象层", "sublabel": "simd.h", "pos": [300, 155], "size": [150, 60] },
+    { "id": "base", "type": "backend", "label": "baseline", "sublabel": "通用编译", "pos": [560, 80], "size": [140, 60] },
+    { "id": "disp", "type": "backend", "label": "dispatch", "sublabel": "AVX2/AVX512", "pos": [560, 230], "size": [140, 60] },
+    { "id": "umath", "type": "messagebus", "label": "umath 内核", "sublabel": "loops_*.dispatch", "pos": [810, 155], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "CPU 检测", "wraps": ["cpuid", "features"] },
+    { "kind": "region", "label": "多版本编译", "wraps": ["npyv", "base", "disp"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "cpuid", "to": "features", "label": "填充", "variant": "emphasis", "labelDy": 20 },
+    { "id": "c2", "from": "features", "to": "npyv", "label": "选内核", "labelDy": 20 },
+    { "id": "c3", "from": "npyv", "to": "base", "label": "兜底" },
+    { "id": "c4", "from": "npyv", "to": "disp", "label": "优化" },
+    { "id": "c5", "from": "base", "to": "umath" },
+    { "id": "c6", "from": "disp", "to": "umath" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "两层分派", "items": ["编译期多版本", "运行期按 ISA 选最优"] }
+  ]
+}

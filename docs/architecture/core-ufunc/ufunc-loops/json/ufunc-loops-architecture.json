@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ufunc 内核循环层架构",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1280, 480]
+  },
+  "components": [
+    { "id": "template", "type": "frontend", "label": ".src 模板", "sublabel": "手写模板文件", "pos": [40, 80], "size": [160, 60] },
+    { "id": "repeat", "type": "backend", "label": "repeat 宏展开", "sublabel": "dtype 参数化", "pos": [280, 80], "size": [150, 60] },
+    { "id": "gen", "type": "backend", "label": "生成 .c 内核", "sublabel": "多 dtype 实例化", "pos": [510, 80], "size": [150, 60] },
+    { "id": "scalar", "type": "backend", "label": "标量内核", "sublabel": "loops.c.src", "pos": [510, 220], "size": [150, 60] },
+    { "id": "simd", "type": "backend", "label": "SIMD 内核", "sublabel": "loops_*.dispatch", "pos": [740, 220], "size": [150, 60] },
+    { "id": "meson", "type": "messagebus", "label": "meson_cpu 分派", "sublabel": "多 ISA 编译", "pos": [740, 80], "size": [150, 60] },
+    { "id": "reg", "type": "database", "label": "注册 _loops", "sublabel": "ArrayMethod 表", "pos": [970, 150], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "代码生成", "wraps": ["template", "repeat", "gen"] },
+    { "kind": "region", "label": "内核与分派", "wraps": ["scalar", "simd", "meson"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "template", "to": "repeat", "label": "宏", "variant": "emphasis", "labelDy": 20 },
+    { "id": "c2", "from": "repeat", "to": "gen", "label": "生成", "labelDy": 20 },
+    { "id": "c3", "from": "gen", "to": "scalar", "label": "标量", "labelDy": 20 },
+    { "id": "c4", "from": "gen", "to": "meson", "label": "SIMD", "labelDy": 20 },
+    { "id": "c5", "from": "meson", "to": "simd", "label": "ISA 选择", "labelDy": 20 },
+    { "id": "c6", "from": "scalar", "to": "reg", "label": "注册", "variant": "dashed" },
+    { "id": "c7", "from": "simd", "to": "reg", "label": "注册" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": ".src 代码生成", "items": ["模板手写，.c 由预处理器生成", "禁止手改生成文件"] }
+  ]
+}

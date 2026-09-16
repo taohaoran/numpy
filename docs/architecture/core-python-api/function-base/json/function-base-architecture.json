@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "函数基与形状操作（function-base）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 560]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "import numpy as np", "pos": [40, 220], "size": [120, 55] },
+    { "id": "shapebase", "type": "backend", "label": "shape_base.py", "sublabel": "stack/vstack/hstack/block", "pos": [250, 80], "size": [160, 60], "tag": "NEP-18" },
+    { "id": "funcbase", "type": "backend", "label": "function_base.py", "sublabel": "linspace/logspace/geomspace", "pos": [250, 220], "size": [160, 60] },
+    { "id": "einsumfunc", "type": "backend", "label": "einsumfunc.py", "sublabel": "einsum/einsum_path", "pos": [250, 360], "size": [160, 60], "tag": "路径优化" },
+    { "id": "addnewdocs", "type": "backend", "label": "_add_newdocs.py", "sublabel": "C 对象文档注入", "pos": [250, 470], "size": [160, 55] },
+    { "id": "multiarray", "type": "backend", "label": "multiarray.py", "sublabel": "concatenate/array", "pos": [620, 220], "size": [150, 60] },
+    { "id": "cext", "type": "database", "label": "_multiarray_umath", "sublabel": "c_einsum/concat C", "pos": [870, 220], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Python 函数层", "wraps": ["shapebase", "funcbase", "einsumfunc", "addnewdocs"] },
+    { "kind": "region", "label": "C 扩展层", "wraps": ["multiarray", "cext"] }
+  ],
+  "connections": [
+    { "id": "u-shape", "from": "user", "to": "shapebase", "label": "np.stack 等", "variant": "emphasis" },
+    { "id": "u-func", "from": "user", "to": "funcbase", "label": "np.linspace 等", "variant": "emphasis" },
+    { "id": "u-ein", "from": "user", "to": "einsumfunc", "label": "np.einsum", "variant": "emphasis" },
+    { "id": "shape-ma", "from": "shapebase", "to": "multiarray", "label": "concatenate/array" },
+    { "id": "func-ma", "from": "funcbase", "to": "multiarray", "label": "asanyarray" },
+    { "id": "ein-cext", "from": "einsumfunc", "to": "cext", "label": "c_einsum" },
+    { "id": "ma-cext", "from": "multiarray", "to": "cext", "label": "* 导入" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "shape_base.py：atleast_1d/2d/3d 维度提升 + stack/vstack/hstack 轴堆叠 + block 嵌套块拼接",
+      "einsumfunc.py：einsum 路径优化——greedy/optimal 搜索最小 FLOPS 收缩顺序，最终调用 C 层 c_einsum",
+      "_add_newdocs.py：在 import 时向 C 扩展对象（ndarray 方法、flatiter 等）注入 Python 文档字符串，避免重编译"
+    ]}
+  ]
+}

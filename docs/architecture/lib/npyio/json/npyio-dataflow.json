@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "np.load 读取管道：从文件到 ndarray",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1080, 560]
+  },
+  "stages": [
+    { "label": "入口分派" },
+    { "label": "魔数识别" },
+    { "label": "头解析" },
+    { "label": "字节装载" },
+    { "label": "产出" }
+  ],
+  "nodes": [
+    { "id": "load", "type": "frontend", "label": "load()", "sublabel": "_npyio_impl.py:312", "stage": 0, "row": 0 },
+    { "id": "magic", "type": "backend", "label": "read_magic", "sublabel": "格式版本 (major,minor)", "stage": 1, "row": 0 },
+    { "id": "head", "type": "backend", "label": "read_array_header_*", "sublabel": "literal_eval 字典", "stage": 2, "row": 0 },
+    { "id": "descr", "type": "backend", "label": "descr_to_dtype", "sublabel": "descr → dtype", "stage": 2, "row": 1 },
+    { "id": "readarr", "type": "backend", "label": "read_array", "sublabel": "frombuffer/mmap", "stage": 3, "row": 0 },
+    { "id": "nd", "type": "database", "label": "ndarray", "sublabel": "内存视图", "stage": 4, "row": 0 }
+  ],
+  "flows": [
+    { "from": "load", "to": "magic", "label": "文件对象", "variant": "emphasis" },
+    { "from": "magic", "to": "head", "label": "按版本选读头函数", "variant": "emphasis" },
+    { "from": "head", "to": "descr", "label": "取 descr", "labelDy": 34 },
+    { "from": "head", "to": "readarr", "label": "shape/order" },
+    { "from": "descr", "to": "readarr", "label": "目标 dtype" },
+    { "from": "readarr", "to": "nd", "label": "重建数组", "variant": "emphasis" }
+  ]
+}

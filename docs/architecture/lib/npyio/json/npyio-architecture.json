@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "npyio 子系统架构：.npy/.npz 二进制与文本 IO",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 620]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "NumPy 用户", "sublabel": "save/load/loadtxt", "pos": [40, 260], "size": [150, 60] },
+    { "id": "api", "type": "frontend", "label": "二进制 API", "sublabel": "_npyio_impl.py", "pos": [280, 140], "size": [170, 70], "tag": "save/savez/load" },
+    { "id": "txtapi", "type": "frontend", "label": "文本 API", "sublabel": "loadtxt/genfromtxt", "pos": [280, 400], "size": [170, 70] },
+    { "id": "format", "type": "backend", "label": "二进制格式", "sublabel": "_format_impl.py", "pos": [560, 90], "size": [180, 70], "tag": "magic+header" },
+    { "id": "dtype", "type": "backend", "label": "dtype 往返", "sublabel": "to_descr/descr_to", "pos": [780, 90], "size": [170, 70] },
+    { "id": "npz", "type": "backend", "label": "npz 归档", "sublabel": "NpzFile 懒加载", "pos": [560, 230], "size": [180, 70] },
+    { "id": "iotools", "type": "backend", "label": "文本转换", "sublabel": "_iotools.py", "pos": [560, 400], "size": [180, 70], "tag": "StringConverter" },
+    { "id": "fs", "type": "database", "label": "文件系统", "sublabel": ".npy/.npz/.txt", "pos": [980, 240], "size": [160, 70] },
+    { "id": "pickle", "type": "external", "label": "pickle", "sublabel": "allow_pickle", "pos": [980, 440], "size": [160, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/lib（本仓库）", "wraps": ["api", "txtapi", "format", "dtype", "npz", "iotools"] }
+  ],
+  "connections": [
+    { "id": "u-api", "from": "user", "to": "api", "label": "save/load", "variant": "emphasis" },
+    { "id": "u-txt", "from": "user", "to": "txtapi", "label": "loadtxt" },
+    { "id": "api-format", "from": "api", "to": "format", "label": "读写字节", "variant": "emphasis" },
+    { "id": "api-npz", "from": "api", "to": "npz", "label": "归档键值" },
+    { "id": "txt-iot", "from": "txtapi", "to": "iotools", "label": "逐行转换" },
+    { "id": "fmt-dtype", "from": "format", "to": "dtype", "label": "描述符" },
+    { "id": "fmt-fs", "from": "format", "to": "fs", "label": "字节流" },
+    { "id": "npz-fs", "from": "npz", "to": "fs", "label": "zip 流" },
+    { "id": "api-pkl", "from": "api", "to": "pickle", "label": "对象数组", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "npy 格式三版本 1.0/2.0/3.0，magic=\\x93NUMPY",
+      "header 用 ast.literal_eval 解析，限 10000 字节",
+      "npz 为 zip 归档，按 key 懒加载单个 .npy",
+      "genfromtxt 经 StringConverter 按列推断 dtype"
+    ] }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "stride-tricks 子系统：按步长构造数组视图",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1080, 560]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "as_strided/sliding_window_view", "pos": [40, 240], "size": [160, 60] },
+    { "id": "asstrided", "type": "frontend", "label": "as_strided", "sublabel": "_stride_tricks_impl.py:39", "pos": [300, 140], "size": [180, 70], "tag": "危险视图" },
+    { "id": "sliding", "type": "frontend", "label": "sliding_window_view", "sublabel": ":180", "pos": [300, 300], "size": [180, 70] },
+    { "id": "broadcast", "type": "frontend", "label": "broadcast_*", "sublabel": "broadcast_to/shapes", "pos": [300, 450], "size": [180, 70] },
+    { "id": "dummy", "type": "backend", "label": "DummyArray", "sublabel": "挂 __array_interface__", "pos": [620, 140], "size": [180, 64] },
+    { "id": "core", "type": "database", "label": "_core ndarray", "sublabel": "view() 重建", "pos": [620, 300], "size": [180, 70] },
+    { "id": "mem", "type": "external", "label": "底层内存", "sublabel": "base 数组", "pos": [920, 300], "size": [140, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/lib.stride_tricks（本仓库）", "wraps": ["asstrided", "sliding", "broadcast", "dummy"] }
+  ],
+  "connections": [
+    { "id": "u-a", "from": "user", "to": "asstrided", "label": "shape/strides", "variant": "emphasis" },
+    { "id": "u-s", "from": "user", "to": "sliding", "label": "window_shape" },
+    { "id": "u-b", "from": "user", "to": "broadcast", "label": "目标形状" },
+    { "id": "a-dummy", "from": "asstrided", "to": "dummy", "label": "构造接口字典" },
+    { "id": "s-a", "from": "sliding", "to": "asstrided", "label": "复用" },
+    { "id": "a-core", "from": "asstrided", "to": "core", "label": "ndarray(...) 视图" },
+    { "id": "b-core", "from": "broadcast", "to": "core", "label": "广播视图" },
+    { "id": "core-mem", "from": "core", "to": "mem", "label": "共享存储", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "风险提示", "items": [
+      "as_strided 不检查越界，可能读到/写坏内存",
+      "视图与 base 数组共享存储，写回影响原数组",
+      "writeable=True 默认开启，需谨慎"
+    ] }
+  ]
+}

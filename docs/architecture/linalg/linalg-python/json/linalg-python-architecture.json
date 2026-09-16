@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "线性代数 Python API（linalg-python）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 500]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "np.linalg.solve", "pos": [40, 200], "size": [120, 55] },
+    { "id": "linalg-py", "type": "backend", "label": "_linalg.py", "sublabel": "Python API", "pos": [250, 100], "size": [160, 60], "tag": "NEP-18" },
+    { "id": "helpers", "type": "backend", "label": "类型/错误工具", "sublabel": "_commonType/_raise", "pos": [250, 250], "size": [160, 55] },
+    { "id": "umath", "type": "database", "label": "_umath_linalg", "sublabel": "C++ ufunc", "pos": [580, 100], "size": [160, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Python 层", "wraps": ["linalg-py", "helpers"] },
+    { "kind": "region", "label": "C++ 层", "wraps": ["umath"] }
+  ],
+  "connections": [
+    { "id": "u-lp", "from": "user", "to": "linalg-py", "label": "np.linalg.solve", "variant": "emphasis" },
+    { "id": "lp-helpers", "from": "linalg-py", "to": "helpers", "label": "类型提升", "labelDy": 24 },
+    { "id": "lp-umath", "from": "linalg-py", "to": "umath", "label": "LAPACK 调用" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "Python 层提供 solve/inv/eig/svd/cholesky/qr/lstsq/norm 等高阶线性代数 API",
+      "NamedTuple 返回类型（EigResult/SVDResult/QRResult）提供结构化结果",
+      "类型提升工具：_commonType/_realType/_complexType 统一 float/double 精度选择",
+      "错误处理器将 LAPACK 错误码转为 LinAlgError 子类"
+    ]}
+  ]
+}

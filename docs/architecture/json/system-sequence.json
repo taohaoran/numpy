@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "NumPy ufunc 调用生命周期时序",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 820],
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "caller", "type": "external", "label": "Python 调用方", "sublabel": "用户代码" },
+    { "id": "pyapi", "type": "frontend", "label": "Python API", "sublabel": "umath.py / numeric.py" },
+    { "id": "ufunc", "type": "backend", "label": "ufunc 对象", "sublabel": "ufunc_object.c" },
+    { "id": "resolve", "type": "backend", "label": "类型解析与分派", "sublabel": "type_resolution / dispatching" },
+    { "id": "loop", "type": "backend", "label": "循环内核", "sublabel": "loops_*.dispatch.c" },
+    { "id": "simd", "type": "backend", "label": "SIMD 特化", "sublabel": "_simd / npy_cpu_features" }
+  ],
+  "segments": [
+    { "from": 140, "to": 240, "label": "Python 入口" },
+    { "from": 240, "to": 420, "label": "类型解析与分派" },
+    { "from": 420, "to": 660, "label": "内核执行" },
+    { "from": 660, "to": 770, "label": "返回结果" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "caller", "to": "pyapi", "y": 170, "label": "np.add(a, b)", "variant": "emphasis" },
+    { "id": "m2", "from": "pyapi", "to": "ufunc", "y": 210, "label": "ufunc.__call__(*args)" },
+    { "id": "m3", "from": "ufunc", "to": "resolve", "y": 270, "label": "type_resolution (dtype 推断)" },
+    { "id": "m4", "from": "resolve", "to": "ufunc", "y": 320, "label": "选定 ArrayMethod + 输出 dtype", "variant": "return" },
+    { "id": "m5", "from": "ufunc", "to": "loop", "y": 380, "label": "调用选定 loop 函数", "variant": "emphasis" },
+    { "id": "m6", "from": "loop", "to": "simd", "y": 440, "label": "NPY_CPU_DISPATCH 选择 ISA" },
+    { "id": "m7", "from": "simd", "to": "loop", "y": 500, "label": "向量化计算", "variant": "return" },
+    { "id": "m8", "from": "loop", "to": "ufunc", "y": 560, "label": "迭代元素并累加" },
+    { "id": "m9", "from": "loop", "to": "ufunc", "y": 620, "label": "写入输出数组", "variant": "return" },
+    { "id": "m10", "from": "ufunc", "to": "pyapi", "y": 680, "label": "返回 ndarray", "variant": "return" },
+    { "id": "m11", "from": "pyapi", "to": "caller", "y": 730, "label": "结果 ndarray", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "ufunc", "from": 210, "to": 680, "type": "backend" },
+    { "participant": "resolve", "from": 270, "to": 320, "type": "backend" },
+    { "participant": "loop", "from": 380, "to": 620, "type": "backend" },
+    { "participant": "simd", "from": 440, "to": 500, "type": "backend" }
+  ]
+}

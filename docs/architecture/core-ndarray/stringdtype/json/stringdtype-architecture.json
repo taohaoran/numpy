@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "stringdtype 叶子架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1280, 700]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "Python 用户层", "sublabel": "np.dtype(\"T\") / StringDType", "pos": [60, 320], "size": [190, 60] },
+    { "id": "sd-class", "type": "backend", "label": "StringDType 类", "sublabel": "dtype.c 新字符串 dtype", "pos": [350, 320], "size": [200, 60], "tag": "UTF-8 变长字符串" },
+    { "id": "static-string", "type": "database", "label": "static_string", "sublabel": "SSO 小串优化 + allocator", "pos": [690, 320], "size": [220, 64] },
+    { "id": "casts", "type": "backend", "label": "casts.cpp", "sublabel": "StringDType↔其他 dtype 转换", "pos": [350, 110], "size": [200, 60] },
+    { "id": "utf8-utils", "type": "backend", "label": "utf8_utils", "sublabel": "UTF-8 分支无解码", "pos": [690, 110], "size": [210, 60] },
+    { "id": "dtype-sys", "type": "external", "label": "dtype-system 叶子", "sublabel": "DType 元类", "pos": [1040, 320], "size": [200, 60] },
+    { "id": "ndarray-obj", "type": "external", "label": "ndarray-object 叶子", "sublabel": "持有字符串数组", "pos": [690, 530], "size": [200, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "stringdtype C/C++ 层（本叶子）", "wraps": ["sd-class", "static-string", "casts", "utf8-utils"] },
+    { "kind": "region", "label": "外部 / 相邻", "wraps": ["python", "dtype-sys", "ndarray-obj"] }
+  ],
+  "connections": [
+    { "id": "u-class", "from": "python", "to": "sd-class", "label": "调用", "variant": "emphasis" },
+    { "id": "class-static", "from": "sd-class", "to": "static-string", "label": "字符串存储", "variant": "emphasis" },
+    { "id": "class-casts", "from": "sd-class", "to": "casts", "fromSide": "top", "toSide": "bottom", "label": "注册转换", "labelDy": -20 },
+    { "id": "casts-utf8", "from": "casts", "to": "utf8-utils", "label": "UTF-8 解码" },
+    { "id": "static-dtype", "from": "static-string", "to": "dtype-sys", "label": "DType 注册" },
+    { "id": "static-nd", "from": "static-string", "to": "ndarray-obj", "fromSide": "bottom", "toSide": "top", "label": "数组元素", "labelDy": 20 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "新字符串 dtype", "items": [
+      "NumPy 2.0 引入的 UTF-8 变长字符串 dtype",
+      "SSO 小串优化 + 可插拔 allocator",
+      "na_object / coerce 可配缺失值语义"
+    ]},
+    { "dot": "amber", "title": "UTF-8", "items": [
+      "utf8_utils 分支无解码（branchless）",
+      "num_bytes_for_utf8_character",
+      "casts.cpp 处理与其他 dtype 互转"
+    ]}
+  ]
+}

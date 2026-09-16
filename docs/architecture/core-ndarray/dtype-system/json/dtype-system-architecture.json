@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "dtype-system 叶子架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1320, 820]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "Python 用户层", "sublabel": "np.dtype(...)", "pos": [60, 320], "size": [150, 60] },
+    { "id": "dtypemeta", "type": "backend", "label": "PyArray_DTypeMeta", "sublabel": "dtypemeta.c 元类", "pos": [330, 110], "size": [190, 60] },
+    { "id": "descr-type", "type": "backend", "label": "PyArrayDescr_Type", "sublabel": "descriptor.c", "pos": [330, 320], "size": [180, 60], "tag": "dtype 对象类型" },
+    { "id": "py-dtype", "type": "external", "label": "_dtype.py", "sublabel": "Python 字符串/名字处理", "pos": [60, 530], "size": [160, 60] },
+    { "id": "descr-struct", "type": "database", "label": "PyArray_Descr_fields", "sublabel": "typeobj·kind·type·byteorder·type_num·flags·elsize·alignment·metadata·hash", "pos": [660, 320], "size": [300, 76], "tag": "核心描述符" },
+    { "id": "ndarray-obj", "type": "external", "label": "ndarray-object 叶子", "sublabel": "descr 持有者", "pos": [1010, 320], "size": [200, 60] },
+    { "id": "cast-table", "type": "backend", "label": "can_cast_table", "sublabel": "can_cast_table.h 编译期表", "pos": [330, 530], "size": [200, 60] },
+    { "id": "convert-dt", "type": "backend", "label": "convert_datatype", "sublabel": "convert_datatype.c cast 循环注册", "pos": [660, 530], "size": [200, 60] },
+    { "id": "dtype-transfer", "type": "backend", "label": "dtype_transfer", "sublabel": "GetDTypeTransferFunction", "pos": [1010, 530], "size": [210, 60] },
+    { "id": "common-dtype", "type": "backend", "label": "common_dtype", "sublabel": "result_type / 类型提升", "pos": [660, 700], "size": [200, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "dtype 系统 C 扩展层（本叶子）", "wraps": ["dtypemeta", "descr-type", "descr-struct", "cast-table", "convert-dt", "dtype-transfer", "common-dtype"] },
+    { "kind": "region", "label": "外部 / 相邻", "wraps": ["python", "py-dtype", "ndarray-obj"] }
+  ],
+  "connections": [
+    { "id": "u-type", "from": "python", "to": "descr-type", "label": "调用", "variant": "emphasis" },
+    { "id": "meta-type", "from": "dtypemeta", "to": "descr-type", "fromSide": "bottom", "toSide": "top", "label": "元类实例化", "labelDy": 20 },
+    { "id": "py-descr", "from": "py-dtype", "to": "descr-type", "label": "名字/字符串" },
+    { "id": "type-struct", "from": "descr-type", "to": "descr-struct", "label": "实例", "variant": "emphasis" },
+    { "id": "struct-nd", "from": "descr-struct", "to": "ndarray-obj", "variant": "dashed" },
+    { "id": "cast-convert", "from": "cast-table", "to": "convert-dt", "label": "cast 安全性" },
+    { "id": "convert-transfer", "from": "convert-dt", "to": "dtype-transfer", "label": "注册传输" },
+    { "id": "transfer-struct", "from": "dtype-transfer", "to": "descr-struct", "label": "按 dtype 查表" },
+    { "id": "common-convert", "from": "common-dtype", "to": "convert-dt", "fromSide": "top", "toSide": "bottom", "label": "提升结果", "labelDy": -20 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心描述符", "items": [
+      "PyArray_Descr_fields：typeobj/kind/type/byteorder/type_num/flags/elsize/alignment/metadata/hash",
+      "type_num 唯一标识内置 21 种 + 可扩展用户类型",
+      "flags 标记 parametric/object/has_metadata 等"
+    ]},
+    { "dot": "amber", "title": "cast 安全", "items": [
+      "can_cast_table.h 编译期常量表（FITS/UFITS/IFITS 宏）",
+      "convert_datatype.c 注册 cast 循环",
+      "dtype_transfer.c 按 cast 安全性选传输函数"
+    ]}
+  ]
+}

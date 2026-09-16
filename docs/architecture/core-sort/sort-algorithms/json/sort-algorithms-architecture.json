@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "sort-algorithms 叶子架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1280, 820]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "Python 用户层", "sublabel": "np.sort/argsort/searchsorted", "pos": [60, 320], "size": [190, 60] },
+    { "id": "sort-method", "type": "backend", "label": "npysort_methods", "sublabel": "ArrayMethod 注册/resolve", "pos": [350, 320], "size": [210, 60], "tag": "排序入口" },
+    { "id": "dispatch", "type": "backend", "label": "CPU 分派", "sublabel": "NPY_CPU_DISPATCH", "pos": [690, 320], "size": [180, 60] },
+    { "id": "quicksort", "type": "backend", "label": "quicksort.hpp", "sublabel": "introsort 快排", "pos": [690, 110], "size": [190, 60] },
+    { "id": "heapsort", "type": "backend", "label": "heapsort", "sublabel": "堆排（兜底）", "pos": [1020, 110], "size": [180, 60] },
+    { "id": "timsort", "type": "backend", "label": "timsort", "sublabel": "稳定排序（CPython）", "pos": [1020, 320], "size": [190, 60] },
+    { "id": "radixsort", "type": "backend", "label": "radixsort", "sublabel": "整数基数排序", "pos": [1020, 530], "size": [190, 60] },
+    { "id": "selection", "type": "backend", "label": "selection", "sublabel": "argpartition quickselect", "pos": [690, 530], "size": [200, 60] },
+    { "id": "binsearch", "type": "backend", "label": "binsearch", "sublabel": "searchsorted 二分", "pos": [350, 530], "size": [190, 60] },
+    { "id": "simd", "type": "external", "label": "SIMD 库", "sublabel": "Highway VQSort / x86-simd-sort", "pos": [1020, 700], "size": [230, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "npysort C++ 算法层（本叶子）", "wraps": ["sort-method", "dispatch", "quicksort", "heapsort", "timsort", "radixsort", "selection", "binsearch"] },
+    { "kind": "region", "label": "外部", "wraps": ["python", "simd"] }
+  ],
+  "connections": [
+    { "id": "u-method", "from": "python", "to": "sort-method", "label": "调用", "variant": "emphasis" },
+    { "id": "method-dispatch", "from": "sort-method", "to": "dispatch", "label": "按 dtype 分派", "variant": "emphasis" },
+    { "id": "dispatch-quick", "from": "dispatch", "to": "quicksort", "fromSide": "top", "toSide": "bottom", "label": "快排", "labelDy": -20 },
+    { "id": "quick-heap", "from": "quicksort", "to": "heapsort", "label": "introsort 兜底" },
+    { "id": "dispatch-tim", "from": "dispatch", "to": "timsort", "label": "稳定排序" },
+    { "id": "dispatch-radix", "from": "dispatch", "to": "radixsort", "label": "整数" },
+    { "id": "dispatch-select", "from": "dispatch", "to": "selection", "fromSide": "bottom", "toSide": "top", "label": "分区", "labelDy": 20 },
+    { "id": "method-bins", "from": "sort-method", "to": "binsearch", "fromSide": "bottom", "toSide": "top", "label": "二分搜索", "labelDy": 20 },
+    { "id": "dispatch-simd", "from": "dispatch", "to": "simd", "label": "SIMD 加速", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "算法矩阵", "items": [
+      "quicksort=introsort：递归过深转 heapsort（2*log n）",
+      "timsort：稳定，源自 CPython listsort",
+      "radixsort：整数 O(n)，KEY_OF 键推导"
+    ]},
+    { "dot": "violet", "title": "SIMD 后端", "items": [
+      "Highway VQSort（跨架构）",
+      "x86-simd-sort（x86 专用）",
+      "NPY_CPU_DISPATCH 运行期按 CPU 选内核"
+    ]}
+  ]
+}

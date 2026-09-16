@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "testing-utils 子系统：NumPy 测试工具集",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 560]
+  },
+  "components": [
+    { "id": "test", "type": "external", "label": "NumPy 测试用例", "sublabel": "pytest 运行", "pos": [40, 240], "size": [160, 60] },
+    { "id": "assert", "type": "frontend", "label": "断言族", "sublabel": "_private/utils.py", "pos": [300, 110], "size": [210, 70], "tag": "assert_array_*" },
+    { "id": "ctx", "type": "backend", "label": "上下文/夹具", "sublabel": "suppress_warnings/tempdir", "pos": [300, 240], "size": [210, 64] },
+    { "id": "ext", "type": "backend", "label": "扩展构建", "sublabel": "extbuild.py", "pos": [300, 360], "size": [210, 64] },
+    { "id": "hyp", "type": "backend", "label": "hypothesis 策略", "sublabel": "hypothesis_helpers", "pos": [300, 470], "size": [210, 64] },
+    { "id": "pytest", "type": "database", "label": "pytest / unittest", "sublabel": "外部测试框架", "pos": [660, 240], "size": [180, 70] },
+    { "id": "compiler", "type": "external", "label": "C 编译器", "sublabel": "测试中编译扩展", "pos": [660, 400], "size": [180, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/testing（本仓库）", "wraps": ["assert", "ctx", "ext", "hyp"] }
+  ],
+  "connections": [
+    { "id": "t-a", "from": "test", "to": "assert", "label": "断言", "variant": "emphasis" },
+    { "id": "t-ctx", "from": "test", "to": "ctx", "label": "夹具" },
+    { "id": "a-py", "from": "assert", "to": "pytest", "label": "失败用例" },
+    { "id": "ctx-py", "from": "ctx", "to": "pytest", "variant": "dashed" },
+    { "id": "ext-cc", "from": "ext", "to": "compiler", "label": "编译" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "assert_array_compare 是多数数组断言的公共实现",
+      "assert_allclose 用 rtol/atol 容差比较浮点",
+      "suppress_warnings/tempdir 是可复用测试夹具",
+      "extbuild 支持测试期即时编译 C 扩展"
+    ] }
+  ]
+}

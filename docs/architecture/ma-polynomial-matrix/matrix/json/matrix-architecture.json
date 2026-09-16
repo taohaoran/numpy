@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "matrix 子系统：2-D 矩阵子类",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1080, 460]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "np.matrix / asmatrix", "pos": [40, 180], "size": [150, 60] },
+    { "id": "matrix", "type": "backend", "label": "matrix (ndarray 子类)", "sublabel": "defmatrix.py:74", "pos": [310, 150], "size": [220, 90], "tag": "* 为矩阵乘  T/I/A/H" },
+    { "id": "conv", "type": "backend", "label": "字符串转换", "sublabel": "_convert_from_string", "pos": [310, 310], "size": [220, 64] },
+    { "id": "bmat", "type": "backend", "label": "bmat 分块拼接", "sublabel": "defmatrix.py:1041", "pos": [660, 150], "size": [180, 64] },
+    { "id": "core", "type": "database", "label": "_core ndarray/ufunc", "sublabel": "底层运算", "pos": [660, 310], "size": [180, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/matrixlib（本仓库）", "wraps": ["matrix", "conv", "bmat"] }
+  ],
+  "connections": [
+    { "id": "u-m", "from": "user", "to": "matrix", "label": "构造/矩阵乘", "variant": "emphasis" },
+    { "id": "m-c", "from": "matrix", "to": "conv", "label": "字符串输入", "labelDy": 26 },
+    { "id": "b-m", "from": "bmat", "to": "matrix", "label": "组装块" },
+    { "id": "m-core", "from": "matrix", "to": "core", "label": "继承运算" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "要点", "items": [
+      "matrix 是 ndarray 的 2-D 子类，已不推荐新代码使用",
+      "* 重载为矩阵乘法（matmul），元素乘用 multiply",
+      "__array_priority__=10 让混合运算结果优先为 matrix",
+      "T/I/A/H 分别转置/求逆/转 ndarray/共轭转置"
+    ] }
+  ]
+}

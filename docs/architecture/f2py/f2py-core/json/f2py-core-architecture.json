@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "f2py-core 子系统：Fortran 接口代码生成器",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 480]
+  },
+  "components": [
+    { "id": "cli", "type": "external", "label": "用户/命令行", "sublabel": "f2py -m mod file.f", "pos": [40, 190], "size": [170, 60] },
+    { "id": "entry", "type": "frontend", "label": "f2py2e 主流程", "sublabel": "run_main:426", "pos": [300, 170], "size": [190, 80] },
+    { "id": "crack", "type": "backend", "label": "crackfortran", "sublabel": "Fortran→AST", "pos": [600, 90], "size": [190, 64] },
+    { "id": "rules", "type": "security", "label": "rules/capi_maps", "sublabel": "类型签名映射", "pos": [600, 200], "size": [190, 64] },
+    { "id": "gen", "type": "backend", "label": "cfuncs/buildmodules", "sublabel": "生成 module.c", "pos": [600, 310], "size": [190, 64] },
+    { "id": "compiler", "type": "external", "label": "C/Fortran 编译器", "sublabel": "外部工具", "pos": [930, 200], "size": [170, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/f2py（本仓库）", "wraps": ["entry", "crack", "rules", "gen"] }
+  ],
+  "connections": [
+    { "id": "u-e", "from": "cli", "to": "entry", "label": "命令", "variant": "emphasis" },
+    { "id": "e-crack", "from": "entry", "to": "crack", "label": "解析" },
+    { "id": "e-rules", "from": "entry", "to": "rules", "label": "签名表" },
+    { "id": "rules-gen", "from": "rules", "to": "gen", "label": "类型→C", "labelDy": 24 },
+    { "id": "gen-comp", "from": "gen", "to": "compiler", "label": ".c/.f" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "crackfortran 是自研 Fortran 语法解析器，产出 AST 字典",
+      "rules/capi_maps 把 Fortran 类型映射为 C/Python 签名",
+      "生成 module.c 包装 + 链接 fortranobject.c 运行时",
+      "编译由外部 C/Fortran 编译器完成，不在本仓库"
+    ] }
+  ]
+}

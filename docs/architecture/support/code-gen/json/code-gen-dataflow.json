@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "code-gen 构建期代码生成：模板/定义 → C 源",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 560]
+  },
+  "stages": [
+    { "label": "输入" },
+    { "label": "生成器" },
+    { "label": "产物" },
+    { "label": "编译" }
+  ],
+  "nodes": [
+    { "id": "src", "type": "external", "label": "*.c.src 模板", "sublabel": "Tempita 语法", "stage": 0, "row": 0 },
+    { "id": "def", "type": "external", "label": "ufunc 定义表", "sublabel": "generate_umath 内", "stage": 0, "row": 1 },
+    { "id": "conv", "type": "backend", "label": "conv_template", "sublabel": "vendored tempita", "stage": 1, "row": 0 },
+    { "id": "umath", "type": "backend", "label": "generate_umath", "sublabel": "Ufunc/TD 表", "stage": 1, "row": 1 },
+    { "id": "genapi", "type": "backend", "label": "genapi", "sublabel": "解析 API 标注", "stage": 1, "row": 2 },
+    { "id": "c", "type": "messagebus", "label": "生成 .c/.h", "sublabel": "勿手改", "stage": 2, "row": 1 },
+    { "id": "cc", "type": "external", "label": "C 编译器", "sublabel": "meson 调用", "stage": 3, "row": 1 }
+  ],
+  "flows": [
+    { "from": "src", "to": "conv", "label": "渲染", "variant": "emphasis" },
+    { "from": "def", "to": "umath", "label": "Ufunc 表" },
+    { "from": "umath", "to": "c", "label": "注册表/循环", "variant": "emphasis" },
+    { "from": "conv", "to": "c", "label": "实例化" },
+    { "from": "genapi", "to": "c", "label": "C-API 导出表" },
+    { "from": "c", "to": "cc", "label": ".c 源", "variant": "emphasis" }
+  ]
+}

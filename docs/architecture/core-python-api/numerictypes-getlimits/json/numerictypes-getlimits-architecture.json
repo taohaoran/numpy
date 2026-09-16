@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "数值类型与机器限制（numerictypes-getlimits）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 540]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "np.issubdtype 等", "pos": [40, 200], "size": [120, 55] },
+    { "id": "numerictypes", "type": "backend", "label": "numerictypes.py", "sublabel": "类型层级/查询", "pos": [250, 80], "size": [170, 60], "tag": "类型系统" },
+    { "id": "typealiases", "type": "backend", "label": "_type_aliases.py", "sublabel": "sctypeDict 构建", "pos": [250, 220], "size": [170, 55] },
+    { "id": "getlimits", "type": "backend", "label": "getlimits.py", "sublabel": "finfo/iinfo", "pos": [250, 350], "size": [170, 55] },
+    { "id": "utils", "type": "backend", "label": "numpy/_utils/", "sublabel": "set_module 等", "pos": [250, 460], "size": [170, 55] },
+    { "id": "typeinfo", "type": "database", "label": "typeinfo C", "sublabel": "C 类型注册表", "pos": [600, 220], "size": [170, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Python 类型层", "wraps": ["numerictypes", "typealiases", "getlimits", "utils"] },
+    { "kind": "region", "label": "C 扩展", "wraps": ["typeinfo"] }
+  ],
+  "connections": [
+    { "id": "u-nt", "from": "user", "to": "numerictypes", "label": "np.issubdtype", "variant": "emphasis" },
+    { "id": "u-gl", "from": "user", "to": "getlimits", "label": "np.finfo", "variant": "emphasis" },
+    { "id": "ta-ti", "from": "typealiases", "to": "typeinfo", "label": "迭代 typeinfo" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "_type_aliases.py 在 import 时从 C 层 typeinfo 构建 sctypeDict/allTypes/sctypes 三张注册表",
+      "类型层级：generic → number → integer(signed/unsigned) / inexact(floating/complex) / flexible(character/void)",
+      "finfo/iinfo 使用 cached_property 延迟计算浮点/整数机器限制常量",
+      "_utils/ 是无循环依赖的自包含工具层（set_module/asbytes/getargspec）"
+    ]}
+  ]
+}

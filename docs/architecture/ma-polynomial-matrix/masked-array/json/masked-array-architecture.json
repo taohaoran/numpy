@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "masked-array 子系统：带掩码的 ndarray",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 600]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "ma.array / masked_where", "pos": [40, 260], "size": [160, 60] },
+    { "id": "ma", "type": "backend", "label": "MaskedArray", "sublabel": "core.py:2771 (ndarray 子类)", "pos": [300, 200], "size": [200, 90], "tag": "_data + _mask + fill_value" },
+    { "id": "mask", "type": "security", "label": "掩码工具", "sublabel": "make_mask/getmask/mask_or", "pos": [300, 360], "size": [200, 70] },
+    { "id": "wrap", "type": "backend", "label": "掩码 ufunc 包装", "sublabel": "_MaskedUnaryOperation", "pos": [620, 120], "size": [210, 64] },
+    { "id": "wrap2", "type": "backend", "label": "二元/定义域包装", "sublabel": "_MaskedBinary/Domained", "pos": [620, 210], "size": [210, 64] },
+    { "id": "extras", "type": "backend", "label": "ma 统计/集合函数", "sublabel": "extras.py average/median", "pos": [620, 320], "size": [210, 64] },
+    { "id": "mrec", "type": "backend", "label": "MaskedRecords", "sublabel": "mrecords.py:76", "pos": [620, 430], "size": [210, 64] },
+    { "id": "core", "type": "database", "label": "_core ndarray/ufunc", "sublabel": "底层计算", "pos": [950, 260], "size": [170, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/ma（本仓库）", "wraps": ["ma", "mask", "wrap", "wrap2", "extras", "mrec"] }
+  ],
+  "connections": [
+    { "id": "u-ma", "from": "user", "to": "ma", "label": "构造/运算", "variant": "emphasis" },
+    { "id": "ma-mask", "from": "ma", "to": "mask", "label": "维护掩码", "labelDy": 26 },
+    { "id": "ma-wrap", "from": "ma", "to": "wrap", "label": "sin/cos 等" },
+    { "id": "ma-wrap2", "from": "ma", "to": "wrap2", "label": "add/div 等" },
+    { "id": "extras-ma", "from": "extras", "to": "ma", "label": "消费 MaskedArray" },
+    { "id": "mrec-ma", "from": "mrec", "to": "ma", "label": "继承 MaskedArray" },
+    { "id": "wrap-core", "from": "wrap", "to": "core", "label": "调原 ufunc" },
+    { "id": "wrap2-core", "from": "wrap2", "to": "core", "label": "调原 ufunc" },
+    { "id": "extras-core", "from": "extras", "to": "core", "label": "归约" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "MaskedArray 继承 ndarray，另存 _mask 与 fill_value",
+      "掩码 ufunc 包装在算结果时按输入掩码求并集",
+      "filled() 用 fill_value 替换被掩元素得普通数组",
+      "MaskedRecords 是结构化 dtype 的掩码记录子类"
+    ] }
+  ]
+}

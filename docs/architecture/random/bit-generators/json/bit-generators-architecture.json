@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "位生成器（bit-generators）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 520]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "default_rng", "pos": [40, 200], "size": [120, 55] },
+    { "id": "seedseq", "type": "backend", "label": "SeedSequence", "sublabel": "种子序列", "pos": [250, 60], "size": [150, 55] },
+    { "id": "bitgen", "type": "backend", "label": "BitGenerator", "sublabel": "基类", "pos": [250, 180], "size": [150, 55], "tag": "随机位源" },
+    { "id": "mt", "type": "backend", "label": "MT19937", "sublabel": "梅森旋转", "pos": [250, 300], "size": [150, 55] },
+    { "id": "pcg", "type": "backend", "label": "PCG64", "sublabel": "PCG XSL-RR", "pos": [250, 400], "size": [150, 55] },
+    { "id": "philox", "type": "backend", "label": "Philox", "sublabel": "计数器", "pos": [500, 300], "size": [150, 55] },
+    { "id": "sfc", "type": "backend", "label": "SFC64", "sublabel": "Chaotic", "pos": [500, 400], "size": [150, 55] },
+    { "id": "cimpl", "type": "database", "label": "C 实现", "sublabel": "src/*.c", "pos": [820, 340], "size": [160, 55] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Cython 绑定层", "wraps": ["seedseq", "bitgen", "mt", "pcg", "philox", "sfc"] },
+    { "kind": "region", "label": "C 核心", "wraps": ["cimpl"] }
+  ],
+  "connections": [
+    { "id": "u-bitgen", "from": "user", "to": "bitgen", "label": "构造", "variant": "emphasis" },
+    { "id": "ss-bg", "from": "seedseq", "to": "bitgen", "label": "播种", "labelDy": 24 },
+    { "id": "bg-mt", "from": "bitgen", "to": "mt", "label": "继承", "labelDy": 24 },
+    { "id": "pcg-c", "from": "pcg", "to": "cimpl", "label": "nogil" },
+    { "id": "philox-c", "from": "philox", "to": "cimpl", "label": "nogil" },
+    { "id": "sfc-c", "from": "sfc", "to": "cimpl", "label": "nogil" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "BitGenerator 是抽象基类，定义 random_raw/seed/state/jump/advance 接口",
+      "SeedSequence 来自 O'Neill 的 C++11 seed_seq，将用户种子扩展为初始化向量",
+      "每个位生成器在 Cython 中 extern 声明 C 函数，nogil 释放 GIL",
+      "MT19937/PCG64/Philox/SFC64 均为 BitGenerator 子类，C 实现在 src/ 下"
+    ]}
+  ]
+}

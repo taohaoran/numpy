@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "覆盖协议与 ufunc 配置（overrides-ufunc-config）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 560]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "np.sum(a)", "pos": [40, 200], "size": [120, 55] },
+    { "id": "dispatcher", "type": "backend", "label": "array_function_dispatch", "sublabel": "装饰器工厂", "pos": [250, 80], "size": [180, 60], "tag": "NEP-18" },
+    { "id": "afd", "type": "backend", "label": "_ArrayFunctionDispatcher", "sublabel": "C 类分发器", "pos": [250, 220], "size": [180, 60], "tag": "C 实现" },
+    { "id": "ufuncconfig", "type": "backend", "label": "_ufunc_config.py", "sublabel": "seterr/errstate", "pos": [250, 360], "size": [180, 55] },
+    { "id": "globals", "type": "backend", "label": "_globals.py", "sublabel": "_NoValue/_CopyMode", "pos": [250, 470], "size": [180, 55] },
+    { "id": "cext", "type": "database", "label": "_multiarray_umath", "sublabel": "分发逻辑+err 处理", "pos": [600, 220], "size": [180, 60] },
+    { "id": "thirdparty", "type": "external", "label": "第三方数组库", "sublabel": "torch/jax/sparse", "pos": [600, 80], "size": [180, 55] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Python 协议层", "wraps": ["dispatcher", "afd", "ufuncconfig", "globals"] },
+    { "kind": "region", "label": "C 扩展", "wraps": ["cext"] }
+  ],
+  "connections": [
+    { "id": "u-afd", "from": "user", "to": "afd", "label": "np.sum 等", "variant": "emphasis" },
+    { "id": "dispatcher-afd", "from": "dispatcher", "to": "afd", "label": "包装", "labelDy": 24 },
+    { "id": "afd-cext", "from": "afd", "to": "cext", "label": "分发检查" },
+    { "id": "thirdparty-afd", "from": "thirdparty", "to": "afd", "label": "__array_function__", "variant": "dashed" },
+    { "id": "ufuncconfig-cext", "from": "ufuncconfig", "to": "cext", "label": "seterr" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "NEP-18 __array_function__：每个公开函数经 @array_function_dispatch 包装为 _ArrayFunctionDispatcher",
+      "调用时先检查参数是否有 __array_function__ 方法，有则委托给第三方实现，否则走 NumPy 默认实现",
+      "verify_matching_signatures 确保 dispatcher 与实现函数签名一致（开发期检查）",
+      "_NoValue 单例区分'未传参'与'显式 None'，_CopyMode 控制拷贝行为"
+    ]}
+  ]
+}

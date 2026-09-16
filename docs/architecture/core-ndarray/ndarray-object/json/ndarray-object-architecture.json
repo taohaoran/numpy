@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ndarray-object 叶子架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1320, 860],
+    "views": [
+      { "id": "main", "label": "对象生命周期主路径", "focus": ["pyarray-type", "ctor", "ndarray-struct", "dealloc"], "note": "从 array_new 创建到 array_dealloc 回收" }
+    ]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "Python 用户层", "sublabel": "np.ndarray(...) 调用", "pos": [60, 320], "size": [150, 60] },
+    { "id": "pyarray-type", "type": "backend", "label": "PyArray_Type", "sublabel": "arrayobject.c:1268", "pos": [320, 320], "size": [170, 60], "tag": "ndarray 类型对象" },
+    { "id": "ctor", "type": "backend", "label": "创建构造", "sublabel": "array_new / NewFromDescr_int", "pos": [320, 110], "size": [170, 60] },
+    { "id": "dealloc", "type": "backend", "label": "析构回收", "sublabel": "array_dealloc / _clear_array_attributes", "pos": [320, 530], "size": [170, 60] },
+    { "id": "ndarray-struct", "type": "database", "label": "PyArrayObject_fields", "sublabel": "data·nd·dimensions·strides·base·descr·flags·mem_handler", "pos": [640, 320], "size": [280, 72], "tag": "核心结构体" },
+    { "id": "buffer-proto", "type": "backend", "label": "缓冲区协议", "sublabel": "buffer.c array_getbuffer", "pos": [640, 110], "size": [200, 60] },
+    { "id": "methods", "type": "backend", "label": "方法表", "sublabel": "methods.c array_methods[]", "pos": [990, 110], "size": [190, 60] },
+    { "id": "richcompare", "type": "backend", "label": "富比较", "sublabel": "array_richcompare / _void_compare", "pos": [990, 320], "size": [190, 60] },
+    { "id": "array-method", "type": "backend", "label": "ArrayMethod 抽象层", "sublabel": "array_method.c PyArrayMethod_Type", "pos": [990, 530], "size": [210, 60] },
+    { "id": "allocator", "type": "backend", "label": "分配器", "sublabel": "alloc.c npy_alloc_cache / PyDataMem", "pos": [640, 530], "size": [210, 60] },
+    { "id": "mem-handler", "type": "external", "label": "PyDataMem_Handler", "sublabel": "外部内存策略", "pos": [640, 700], "size": [210, 56] },
+    { "id": "dtype-sys", "type": "external", "label": "dtype-system 叶子", "sublabel": "PyArray_Descr / DTypeMeta", "pos": [990, 700], "size": [190, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "multiarray C 扩展层（本叶子）", "wraps": ["pyarray-type", "ctor", "dealloc", "ndarray-struct", "buffer-proto", "methods", "richcompare", "array-method", "allocator"] },
+    { "kind": "region", "label": "相邻叶子 / 外部", "wraps": ["dtype-sys", "mem-handler"] }
+  ],
+  "connections": [
+    { "id": "u-type", "from": "python", "to": "pyarray-type", "label": "调用", "variant": "emphasis" },
+    { "id": "type-ctor", "from": "pyarray-type", "to": "ctor", "fromSide": "top", "toSide": "bottom", "label": "array_new", "variant": "emphasis", "labelDy": -22 },
+    { "id": "type-dealloc", "from": "pyarray-type", "to": "dealloc", "fromSide": "bottom", "toSide": "top", "label": "tp_dealloc", "labelDy": 22 },
+    { "id": "ctor-struct", "from": "ctor", "to": "ndarray-struct", "label": "填充字段", "variant": "emphasis", "labelDy": -20 },
+    { "id": "dealloc-struct", "from": "dealloc", "to": "ndarray-struct", "label": "释放字段", "labelDy": 20 },
+    { "id": "struct-buffer", "from": "ndarray-struct", "to": "buffer-proto", "fromSide": "top", "toSide": "bottom", "label": "缓冲区视图", "labelDy": -20 },
+    { "id": "struct-methods", "from": "ndarray-struct", "to": "methods", "label": "方法集", "labelDy": -20 },
+    { "id": "struct-rich", "from": "ndarray-struct", "to": "richcompare", "label": "比较", "labelDy": -20 },
+    { "id": "struct-arraymethod", "from": "ndarray-struct", "to": "array-method", "label": "方法分发", "labelDy": -20 },
+    { "id": "struct-alloc", "from": "ndarray-struct", "to": "allocator", "fromSide": "bottom", "toSide": "top", "label": "分配/释放", "labelDy": 20 },
+    { "id": "alloc-handler", "from": "allocator", "to": "mem-handler", "fromSide": "bottom", "toSide": "top", "label": "UserNEW/FREE", "variant": "dashed", "labelDy": 20 },
+    { "id": "struct-descr", "from": "ndarray-struct", "to": "dtype-sys", "label": "descr", "variant": "dashed", "labelDy": 20 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心结构", "items": [
+      "PyArrayObject_fields：data/nd/dimensions/strides/base/descr/flags/mem_handler",
+      "base 引用链压缩，避免无限视图链（SetBaseObject）",
+      "mem_handler 承载可插拔内存分配策略（1.22+）"
+    ]},
+    { "dot": "cyan", "title": "生命周期", "items": [
+      "array_new 经 NewFromDescr_int 构造",
+      "array_dealloc 经 _clear_array_attributes 释放",
+      "WRITEBACKIFCOPY 需显式 Resolve 回拷"
+    ]}
+  ]
+}

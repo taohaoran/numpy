@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "NumPy 数据处理流水线",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 680]
+  },
+  "stages": [
+    { "label": "输入" },
+    { "label": "强制转换" },
+    { "label": "数组表示" },
+    { "label": "分派与计算" },
+    { "label": "输出" }
+  ],
+  "nodes": [
+    { "id": "pyobj", "type": "frontend", "label": "Python 对象", "sublabel": "list / scalar / 序列", "stage": 0, "row": 0 },
+    { "id": "duck", "type": "frontend", "label": "duck array", "sublabel": "__array_function__", "stage": 0, "row": 1 },
+
+    { "id": "coerce", "type": "backend", "label": "强制转换", "sublabel": "array_coercion.c", "stage": 1, "row": 0 },
+    { "id": "convert", "type": "backend", "label": "类型转换", "sublabel": "convert.c / dtype_transfer", "stage": 1, "row": 1 },
+
+    { "id": "ndarray", "type": "backend", "label": "ndarray", "sublabel": "PyArrayObject · 步长存储", "stage": 2, "row": 0 },
+    { "id": "dtype", "type": "backend", "label": "dtype 描述符", "sublabel": "PyArray_Descr", "stage": 2, "row": 1 },
+
+    { "id": "ufunc-disp", "type": "backend", "label": "ufunc 分派", "sublabel": "dispatching.cpp", "stage": 3, "row": 0 },
+    { "id": "strided", "type": "backend", "label": "步长循环", "sublabel": "lowlevel_strided_loops", "stage": 3, "row": 1 },
+    { "id": "simd-kernel", "type": "backend", "label": "SIMD 内核", "sublabel": "AVX2/AVX512/NEON", "stage": 3, "row": 2 },
+
+    { "id": "out-array", "type": "backend", "label": "输出 ndarray", "sublabel": "新分配或 out= 参数", "stage": 4, "row": 0 },
+    { "id": "py-result", "type": "frontend", "label": "Python 结果", "sublabel": "ndarray / scalar", "stage": 4, "row": 1 }
+  ],
+  "flows": [
+    { "from": "pyobj", "to": "coerce", "label": "asarray", "variant": "emphasis" },
+    { "from": "duck", "to": "coerce", "label": "覆盖协议", "variant": "dashed" },
+    { "from": "coerce", "to": "ndarray", "label": "发现 shape/dtype", "variant": "emphasis" },
+    { "from": "convert", "to": "dtype", "label": "cast 表" },
+    { "from": "coerce", "to": "convert", "label": "需 cast", "variant": "dashed", "labelDy": 20 },
+    { "from": "ndarray", "to": "ufunc-disp", "label": "operand", "variant": "emphasis" },
+    { "from": "dtype", "to": "ufunc-disp", "label": "类型签名", "variant": "emphasis" },
+    { "from": "ufunc-disp", "to": "strided", "label": "选 loop", "labelDy": 20 },
+    { "from": "strided", "to": "simd-kernel", "label": "ISA 分派", "labelDy": 28 },
+    { "from": "simd-kernel", "to": "out-array", "label": "向量化写入", "variant": "emphasis" },
+    { "from": "strided", "to": "out-array", "label": "标量回退" },
+    { "from": "out-array", "to": "py-result", "label": "返回 Python", "variant": "emphasis", "labelDy": 28 }
+  ]
+}

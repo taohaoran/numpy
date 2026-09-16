@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "线性代数核心（linalg-core）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 500]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "_linalg.py", "sublabel": "Python API", "pos": [40, 200], "size": [130, 55] },
+    { "id": "umath", "type": "backend", "label": "umath_linalg.cpp", "sublabel": "C++ ufunc 包装", "pos": [280, 100], "size": [160, 60], "tag": "全局锁" },
+    { "id": "lapacklite", "type": "database", "label": "lapack_lite/", "sublabel": "vendored LAPACK", "pos": [620, 100], "size": [170, 60] },
+    { "id": "extblas", "type": "external", "label": "外部 BLAS/LAPACK", "sublabel": "OpenBLAS/MKL 等", "pos": [620, 250], "size": [170, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "C++ 层", "wraps": ["umath"] },
+    { "kind": "region", "label": "LAPACK 后端", "wraps": ["lapacklite", "extblas"] }
+  ],
+  "connections": [
+    { "id": "py-umath", "from": "python", "to": "umath", "label": "调用", "variant": "emphasis" },
+    { "id": "umath-lapacklite", "from": "umath", "to": "lapacklite", "label": "f2c LAPACK" },
+    { "id": "umath-ext", "from": "umath", "to": "extblas", "label": "外部库", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "umath_linalg.cpp 将 LAPACK 操作包装为 ufunc 风格接口（solve/dot/eig/svd 等）",
+      "lapack_lite 是 vendored f2c 转换的 LAPACK/BLAS，支持 single/double/complex/complex16",
+      "无外部 BLAS 时使用全局锁（PyMutex/PyThread_type_lock）串行化 lapack_lite 调用",
+      "配置 HAVE_EXTERNAL_LAPACK 切换后端：外部库或 vendored lapack_lite"
+    ]}
+  ]
+}

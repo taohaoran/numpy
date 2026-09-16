@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "datetime 叶子架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1280, 720]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "Python 用户层", "sublabel": "np.datetime64 / np.is_busday", "pos": [60, 320], "size": [180, 60] },
+    { "id": "dt-core", "type": "backend", "label": "datetime.c 核心", "sublabel": "datetime/timedelta dtype 实现", "pos": [340, 320], "size": [190, 60], "tag": "时间日期核心" },
+    { "id": "dts-struct", "type": "database", "label": "npy_datetimestruct", "sublabel": "year·month·day·hour·min·sec·us·ps·as", "pos": [680, 320], "size": [240, 64] },
+    { "id": "unit-conv", "type": "backend", "label": "单位转换", "sublabel": "can_cast_*_units _datetime.h", "pos": [680, 110], "size": [220, 60] },
+    { "id": "strings", "type": "backend", "label": "datetime_strings", "sublabel": "datetime_strings.c ISO8601", "pos": [340, 110], "size": [200, 60] },
+    { "id": "busday", "type": "backend", "label": "datetime_busday", "sublabel": "datetime_busday.c 工作日函数", "pos": [340, 530], "size": [200, 60] },
+    { "id": "busdaycal", "type": "backend", "label": "datetime_busdaycal", "sublabel": "日历加速对象", "pos": [680, 530], "size": [210, 60] },
+    { "id": "dtype-sys", "type": "external", "label": "dtype-system 叶子", "sublabel": "datetime64/timedelta64 DType", "pos": [1030, 320], "size": [210, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "datetime C 层（本叶子）", "wraps": ["dt-core", "dts-struct", "unit-conv", "strings", "busday", "busdaycal"] },
+    { "kind": "region", "label": "外部 / 相邻", "wraps": ["python", "dtype-sys"] }
+  ],
+  "connections": [
+    { "id": "u-core", "from": "python", "to": "dt-core", "label": "调用", "variant": "emphasis" },
+    { "id": "core-struct", "from": "dt-core", "to": "dts-struct", "label": "分解/打包", "variant": "emphasis" },
+    { "id": "core-unit", "from": "dt-core", "to": "unit-conv", "label": "单位换算" },
+    { "id": "core-strings", "from": "dt-core", "to": "strings", "fromSide": "top", "toSide": "bottom", "label": "解析/格式化" },
+    { "id": "core-busday", "from": "dt-core", "to": "busday", "fromSide": "bottom", "toSide": "top", "label": "工作日", "labelDy": 20 },
+    { "id": "busday-cal", "from": "busday", "to": "busdaycal", "label": "日历加速" },
+    { "id": "struct-dtype", "from": "dts-struct", "to": "dtype-sys", "label": "DType 注册" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "时间存储", "items": [
+      "npy_datetimestruct：分解的日期时间分量",
+      "npy_datetime/npy_timedelta：64 位整数 + 单位",
+      "NPY_DATETIMEUNIT：Y/M/W/D/h/m/s/ms/us/ns/ps/fs/as"
+    ]},
+    { "dot": "amber", "title": "工作日", "items": [
+      "np.is_busday / busday_offset / busday_count",
+      "datetime_busdaycal 预计算日历加速",
+      "holidays/weekmask 可配"
+    ]}
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "记录数组与字符数组（records-strings）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 560]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "np.rec.array 等", "pos": [40, 220], "size": [120, 55] },
+    { "id": "records", "type": "backend", "label": "records.py", "sublabel": "record/recarray", "pos": [250, 80], "size": [170, 60], "tag": "记录数组" },
+    { "id": "defchar", "type": "backend", "label": "defchararray.py", "sublabel": "chararray 向量字符串", "pos": [250, 220], "size": [170, 60] },
+    { "id": "strings", "type": "backend", "label": "numpy/strings/", "sublabel": "StringDType 函数", "pos": [250, 360], "size": [170, 55] },
+    { "id": "char", "type": "external", "label": "numpy/char/", "sublabel": "弃用薄层", "pos": [250, 470], "size": [170, 55] },
+    { "id": "core", "type": "database", "label": "_core.strings C", "sublabel": "StringDType 实现", "pos": [600, 220], "size": [170, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Python 层", "wraps": ["records", "defchar", "strings", "char"] },
+    { "kind": "region", "label": "C 扩展", "wraps": ["core"] }
+  ],
+  "connections": [
+    { "id": "u-rec", "from": "user", "to": "records", "label": "np.rec.array", "variant": "emphasis" },
+    { "id": "u-char", "from": "user", "to": "char", "label": "np.char.add", "variant": "emphasis" },
+    { "id": "defchar-core", "from": "defchar", "to": "core", "label": "字符串操作" },
+    { "id": "strings-core", "from": "strings", "to": "core", "label": "re-export" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "record/recarray：结构化数组的字段访问语法糖（rec.field 替代 rec['field']）",
+      "chararray 是 Numarray 遗留兼容类，NumPy 2.5 起弃用，推荐使用 StringDType",
+      "numpy/char/ 经 __getattr__ 惰性转发，对 chararray/array/asarray 发 DeprecationWarning",
+      "numpy/strings/ 是 StringDType 向量字符串函数的再导出层"
+    ]}
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ufunc 类型提升与分发机制",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 500]
+  },
+  "components": [
+    { "id": "opdtypes", "type": "frontend", "label": "操作数 DType", "sublabel": "用户传入 dtype", "pos": [40, 80], "size": [150, 60] },
+    { "id": "cache", "type": "database", "label": "_dispatch_cache", "sublabel": "提升分发结果缓存", "pos": [40, 230], "size": [150, 60] },
+    { "id": "resolve", "type": "backend", "label": "resolve_implementation", "sublabel": "dispatching.cpp:390", "pos": [260, 80], "size": [180, 70] },
+    { "id": "loops", "type": "database", "label": "ufunc._loops", "sublabel": "DType 元组→ArrayMethod", "pos": [260, 230], "size": [180, 60] },
+    { "id": "promoter", "type": "backend", "label": "promoter 递归", "sublabel": "call_promoter_and_recurse", "pos": [510, 80], "size": [160, 60] },
+    { "id": "legacy", "type": "backend", "label": "legacy 提升", "sublabel": "legacy_promote", "pos": [510, 230], "size": [160, 60] },
+    { "id": "method", "type": "backend", "label": "ArrayMethod", "sublabel": "最终选中实现", "pos": [740, 150], "size": [150, 60] },
+    { "id": "register", "type": "messagebus", "label": "PyUFunc_AddLoop", "sublabel": "注册入口", "pos": [740, 290], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "分发匹配", "wraps": ["resolve", "loops", "promoter", "legacy"] },
+    { "kind": "region", "label": "结果产出", "wraps": ["method", "register"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "opdtypes", "to": "resolve", "label": "输入", "variant": "emphasis", "labelDy": 20 },
+    { "id": "c2", "from": "cache", "to": "resolve", "label": "缓存命中?", "variant": "dashed" },
+    { "id": "c3", "from": "resolve", "to": "loops", "label": "遍历注册表", "labelDy": 20 },
+    { "id": "c4", "from": "resolve", "to": "promoter", "variant": "dashed" },
+    { "id": "c5", "from": "promoter", "to": "resolve", "variant": "dashed" },
+    { "id": "c6", "from": "resolve", "to": "legacy", "label": "回退旧路径", "variant": "dashed" },
+    { "id": "c7", "from": "resolve", "to": "method", "label": "最佳匹配", "labelDy": 20 },
+    { "id": "c8", "from": "register", "to": "loops", "label": "写入注册" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "分发五步", "items": ["签名覆盖 DType→查缓存→找最佳 loop", "promoter 递归→产出 ArrayMethod"] }
+  ]
+}

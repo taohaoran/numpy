@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "NumPy 系统架构总览",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1240, 720]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户 / 下游库", "sublabel": "Python 脚本 · SciPy · pandas", "pos": [20, 300], "size": [130, 70] },
+    { "id": "numpy-top", "type": "frontend", "label": "numpy 顶层命名空间", "sublabel": "__init__.py 聚合再导出", "pos": [190, 300], "size": [150, 70] },
+
+    { "id": "py-api", "type": "frontend", "label": "核心 Python API", "sublabel": "numeric · function_base · arrayprint", "pos": [390, 80], "size": [170, 70] },
+    { "id": "py-ext", "type": "frontend", "label": "扩展子包", "sublabel": "random · fft · linalg · f2py", "pos": [390, 200], "size": [170, 70] },
+    { "id": "py-lib", "type": "frontend", "label": "工具库与支撑", "sublabel": "lib · ma · polynomial · testing", "pos": [390, 320], "size": [170, 70] },
+
+    { "id": "cython", "type": "backend", "label": "Cython 绑定层", "sublabel": "_multiarray_umath · random .pyx", "pos": [610, 140], "size": [180, 70] },
+    { "id": "codegen", "type": "backend", "label": "代码生成器", "sublabel": "code_generators · .src 模板", "pos": [610, 280], "size": [180, 70] },
+
+    { "id": "c-multi", "type": "backend", "label": "multiarray 核心", "sublabel": "ndarray · dtype · 转换 · 迭代", "pos": [840, 60], "size": [170, 70] },
+    { "id": "c-umath", "type": "backend", "label": "umath 通用函数", "sublabel": "ufunc · 分派 · 循环内核", "pos": [840, 170], "size": [170, 70] },
+    { "id": "c-common", "type": "backend", "label": "common + npysort", "sublabel": "步长循环 · SIMD · npymath · 排序", "pos": [840, 280], "size": [170, 70] },
+    { "id": "c-ext", "type": "backend", "label": "扩展 C/C++ 核心", "sublabel": "random · pocketfft · linalg", "pos": [840, 390], "size": [170, 70] },
+
+    { "id": "vendored", "type": "external", "label": "vendored / 外部依赖", "sublabel": "pocketfft · lapack_lite · BLAS · SIMD", "pos": [1050, 390], "size": [170, 80] },
+    { "id": "meson", "type": "external", "label": "meson 构建系统", "sublabel": "meson_cpu · CPU 特性分派", "pos": [610, 530], "size": [180, 70] }
+  ],
+  "connections": [
+    { "id": "u-top", "from": "user", "to": "numpy-top", "label": "import numpy", "variant": "emphasis", "labelDy": -28 },
+    { "id": "top-api", "from": "numpy-top", "to": "py-api", "labelDy": -20 },
+    { "id": "top-ext", "from": "numpy-top", "to": "py-ext", "labelDy": -20 },
+    { "id": "top-lib", "from": "numpy-top", "to": "py-lib", "labelDy": 28 },
+    { "id": "api-cython", "from": "py-api", "to": "cython", "variant": "emphasis", "labelDy": -40 },
+    { "id": "ext-cython", "from": "py-ext", "to": "cython", "labelDy": -20 },
+    { "id": "lib-cython", "from": "py-lib", "to": "cython", "labelDy": 28 },
+    { "id": "cython-multi", "from": "cython", "to": "c-multi", "label": "ndarray", "labelDy": -24 },
+    { "id": "cython-umath", "from": "cython", "to": "c-umath", "label": "ufunc", "labelDy": -20 },
+    { "id": "cython-common", "from": "cython", "to": "c-common", "labelDy": 28 },
+    { "id": "cython-ext", "from": "cython", "to": "c-ext", "labelDy": 28 },
+    { "id": "codegen-umath", "from": "codegen", "to": "c-umath", "variant": "dashed" },
+    { "id": "codegen-multi", "from": "codegen", "to": "c-multi", "variant": "dashed" },
+    { "id": "ext-vendored", "from": "c-ext", "to": "vendored", "variant": "dashed", "labelDy": -30 },
+    { "id": "meson-codegen", "from": "meson", "to": "codegen", "variant": "dashed" },
+    { "id": "meson-common", "from": "meson", "to": "c-common", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "架构范式", "items": ["Python 前端 + C/Cython 核心混合", "三层分层：API → 绑定 → C 核心", "ufunc 两层分发：dtype 选循环 + SIMD 选内核"] },
+    { "dot": "amber", "title": "代码生成", "items": [".src 模板 → generate_*.py → C 源文件", "ufunc 注册表与循环分发自动生成", "构建期 meson 触发，生成文件勿手改"] },
+    { "dot": "cyan", "title": "外部边界与规模", "items": ["pocketfft / lapack_lite 为 vendored", "BLAS / SIMD 内建 / CPython C-API 为外部", "12 域 37 叶深入分析见各域文档"] }
+  ]
+}

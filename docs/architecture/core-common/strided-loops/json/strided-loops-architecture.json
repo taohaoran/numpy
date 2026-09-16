@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "跨步循环与内存重叠基础设施",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 480]
+  },
+  "components": [
+    { "id": "copyfn", "type": "frontend", "label": "GetStridedCopyFn", "sublabel": "选最优拷贝内核", "pos": [40, 80], "size": [160, 60] },
+    { "id": "castfn", "type": "backend", "label": "GetStridedNumericCastFn", "sublabel": "数值转换内核", "pos": [40, 230], "size": [170, 60] },
+    { "id": "strided", "type": "backend", "label": "strided_to_strided", "sublabel": "通用跨步拷贝", "pos": [290, 80], "size": [160, 60] },
+    { "id": "contig", "type": "backend", "label": "contig_to_contig", "sublabel": "连续 memcpy 快路径", "pos": [290, 230], "size": [160, 60] },
+    { "id": "overlap", "type": "messagebus", "label": "mem_overlap", "sublabel": "重叠检测/丢番图", "pos": [530, 155], "size": [160, 70] },
+    { "id": "assign", "type": "backend", "label": "array_assign", "sublabel": "广播 stride 赋值", "pos": [760, 80], "size": [150, 60] },
+    { "id": "transfer", "type": "backend", "label": "dtype_transfer", "sublabel": "object/zero-pad 拷贝", "pos": [760, 230], "size": [160, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "跨步循环层", "wraps": ["copyfn", "castfn", "strided", "contig"] },
+    { "kind": "region", "label": "辅助层", "wraps": ["overlap", "assign", "transfer"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "copyfn", "to": "strided", "label": "非连续", "variant": "emphasis", "labelDy": 20 },
+    { "id": "c2", "from": "copyfn", "to": "contig", "label": "连续", "variant": "dashed" },
+    { "id": "c3", "from": "castfn", "to": "strided", "variant": "dashed" },
+    { "id": "c4", "from": "strided", "to": "overlap", "label": "重叠检查", "labelDy": 20 },
+    { "id": "c5", "from": "assign", "to": "overlap", "variant": "dashed" },
+    { "id": "c6", "from": "overlap", "to": "transfer", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心能力", "items": ["跨步内存拷贝/转换", "内存重叠检测（丢番图方程）"] }
+  ]
+}

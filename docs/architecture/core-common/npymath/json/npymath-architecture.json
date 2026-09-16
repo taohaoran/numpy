@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "npymath 数学库",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 440]
+  },
+  "components": [
+    { "id": "ufunc", "type": "frontend", "label": "ufunc 内核", "sublabel": "loops_*.dispatch", "pos": [40, 155], "size": [150, 60] },
+    { "id": "realm", "type": "backend", "label": "实函数", "sublabel": "npy_math.c.src", "pos": [300, 80], "size": [150, 60] },
+    { "id": "complex", "type": "backend", "label": "复函数", "sublabel": "npy_math_complex.c.src", "pos": [300, 230], "size": [160, 60] },
+    { "id": "half", "type": "backend", "label": "半精度", "sublabel": "halffloat.cpp", "pos": [560, 80], "size": [140, 60] },
+    { "id": "ieee", "type": "backend", "label": "IEEE754", "sublabel": "ieee754.c.src", "pos": [560, 230], "size": [140, 60] },
+    { "id": "ldbl", "type": "backend", "label": "longdouble", "sublabel": "npy_longdouble.c", "pos": [800, 155], "size": [140, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "npymath 库", "wraps": ["realm", "complex", "half", "ieee", "ldbl"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "ufunc", "to": "realm", "label": "sqrt/log", "variant": "emphasis", "labelDy": 20 },
+    { "id": "c2", "from": "ufunc", "to": "complex", "label": "cexpr/csqrt", "variant": "emphasis" },
+    { "id": "c3", "from": "realm", "to": "half", "label": "half 转换" },
+    { "id": "c4", "from": "realm", "to": "ieee", "label": "nextafter" },
+    { "id": "c5", "from": "realm", "to": "ldbl", "label": "longdouble", "labelDy": 20 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "跨平台数学库", "items": ["C99 数学函数移植", "半精度/longdouble 支持"] }
+  ]
+}

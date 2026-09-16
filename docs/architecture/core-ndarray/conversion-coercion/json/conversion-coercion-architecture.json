@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "conversion-coercion 叶子架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1320, 820]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "Python 任意对象", "sublabel": "list/int/tuple/自定义", "pos": [60, 320], "size": [160, 60] },
+    { "id": "fromany", "type": "backend", "label": "PyArray_FromAny", "sublabel": "ctors.c:1460 入口", "pos": [330, 320], "size": [180, 60] },
+    { "id": "discover", "type": "backend", "label": "DiscoverDTypeAndShape", "sublabel": "array_coercion.c:1271 递归", "pos": [650, 320], "size": [220, 60], "tag": "类型形状发现" },
+    { "id": "coercion-cache", "type": "database", "label": "coercion_cache_obj", "sublabel": "array_coercion.c:662", "pos": [650, 530], "size": [220, 60] },
+    { "id": "array-converter", "type": "backend", "label": "array_converter", "sublabel": "array_converter.c 内部转换器", "pos": [1010, 320], "size": [210, 60] },
+    { "id": "convert", "type": "backend", "label": "convert.c", "sublabel": "对象→数组/标量", "pos": [330, 110], "size": [170, 60] },
+    { "id": "conv-utils", "type": "backend", "label": "conversion_utils", "sublabel": "conversion_utils.c 工具", "pos": [650, 110], "size": [190, 60] },
+    { "id": "scalarapi", "type": "backend", "label": "scalarapi", "sublabel": "scalarapi.c 标量 C-API", "pos": [60, 530], "size": [180, 60] },
+    { "id": "scalartypes", "type": "backend", "label": "scalartypes.c.src", "sublabel": "@name@ 模板实例化标量类型", "pos": [650, 700], "size": [210, 56] },
+    { "id": "dtype-sys", "type": "external", "label": "dtype-system 叶子", "sublabel": "类型描述符", "pos": [1010, 530], "size": [200, 60] },
+    { "id": "ndarray-obj", "type": "external", "label": "ndarray-object 叶子", "sublabel": "产出数组", "pos": [1010, 700], "size": [200, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "coercion/转换 C 层（本叶子）", "wraps": ["fromany", "discover", "coercion-cache", "array-converter", "convert", "conv-utils", "scalarapi", "scalartypes"] },
+    { "kind": "region", "label": "外部 / 相邻", "wraps": ["python", "dtype-sys", "ndarray-obj"] }
+  ],
+  "connections": [
+    { "id": "u-fromany", "from": "python", "to": "fromany", "label": "任意对象", "variant": "emphasis" },
+    { "id": "fromany-discover", "from": "fromany", "to": "discover", "label": "发现类型形状", "variant": "emphasis" },
+    { "id": "discover-cache", "from": "discover", "to": "coercion-cache", "fromSide": "bottom", "toSide": "top", "label": "填充缓存", "labelDy": 20 },
+    { "id": "discover-converter", "from": "discover", "to": "array-converter", "label": "多参转换" },
+    { "id": "fromany-convert", "from": "fromany", "to": "convert", "fromSide": "top", "toSide": "bottom", "label": "对象转换", "labelDy": -20 },
+    { "id": "convert-utils", "from": "convert", "to": "conv-utils", "label": "辅助" },
+    { "id": "convert-scalar", "from": "convert", "to": "scalarapi", "label": "标量路径", "labelDy": -20 },
+    { "id": "scalar-types", "from": "scalarapi", "to": "scalartypes", "label": "标量类型" },
+    { "id": "discover-dtype", "from": "discover", "to": "dtype-sys", "label": "查 dtype" },
+    { "id": "cache-nd", "from": "coercion-cache", "to": "ndarray-obj", "label": "赋值产出" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "递归发现", "items": [
+      "DiscoverDTypeAndShape_Recursive 递归展开 list/tuple",
+      "coercion_cache_obj 缓存中间结果",
+      "支持 object 数组内嵌套序列"
+    ]},
+    { "dot": "violet", "title": "标量类型模板", "items": [
+      "scalartypes.c.src 含 @name@/@NAME@/@suff@ 占位",
+      "meson src_file.process() 按类型实例化",
+      "产物 np.int32/float64 等标量类型对象"
+    ]}
+  ]
+}

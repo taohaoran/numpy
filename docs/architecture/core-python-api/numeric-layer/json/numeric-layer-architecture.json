@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "数值层（numeric-layer）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 600]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "import numpy as np", "pos": [40, 200], "size": [130, 60] },
+    { "id": "numeric", "type": "backend", "label": "numeric.py", "sublabel": "数组创建/操作", "pos": [260, 120], "size": [150, 60], "tag": "NEP-18" },
+    { "id": "fromnumeric", "type": "backend", "label": "fromnumeric.py", "sublabel": "规约/排序", "pos": [260, 280], "size": [150, 60], "tag": "_wrapreduction" },
+    { "id": "multiarray", "type": "backend", "label": "multiarray.py", "sublabel": "C 扩展再导出", "pos": [560, 200], "size": [150, 60], "tag": "ndarray/dtype" },
+    { "id": "cext", "type": "database", "label": "_multiarray_umath", "sublabel": "C 扩展", "pos": [860, 200], "size": [150, 60] },
+    { "id": "methods", "type": "backend", "label": "_methods.py", "sublabel": "reduce 桥接", "pos": [560, 340], "size": [150, 55] },
+    { "id": "internal", "type": "backend", "label": "_internal.py", "sublabel": "dtype/PEP3118", "pos": [860, 340], "size": [150, 55] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Python 前端", "wraps": ["numeric", "fromnumeric"] },
+    { "kind": "region", "label": "桥接层", "wraps": ["methods", "internal"] },
+    { "kind": "region", "label": "C 扩展", "wraps": ["multiarray", "cext"] }  ],
+  "connections": [
+    { "id": "u-num", "from": "user", "to": "numeric", "label": "np.zeros_like", "variant": "emphasis" },
+    { "id": "u-from", "from": "user", "to": "fromnumeric", "label": "np.sum", "variant": "emphasis" },
+    { "id": "num-ma", "from": "numeric", "to": "multiarray", "label": "re-export" },
+    { "id": "from-meth", "from": "fromnumeric", "to": "methods", "label": "规约路由" },
+    { "id": "meth-cext", "from": "methods", "to": "multiarray", "label": "ufunc.reduce" },
+    { "id": "int-cext", "from": "internal", "to": "cext", "label": "dtype" },
+    { "id": "ma-cext", "from": "multiarray", "to": "cext", "label": "* 导入" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "numeric.py 约 40 个函数经 @array_function_dispatch 包装（NEP-18）",
+      "fromnumeric.py 用 _wrapreduction 路由到 ndarray 方法或 ufunc.reduce",
+      "_methods.py 是 ndarray 方法与 C ufunc.reduce 的热路径桥接",
+      "memmap.py（ndarray 子类）、_asarray.py、_exceptions.py、numpy/core/ 薄层同属本叶子"
+    ]}
+  ]
+}

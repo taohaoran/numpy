@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "f2py 代码生成管道：Fortran 源码 → Python 扩展",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 420]
+  },
+  "stages": [
+    { "label": "输入" },
+    { "label": "语法解析" },
+    { "label": "签名映射" },
+    { "label": "生成 C 包装" },
+    { "label": "编译产物" }
+  ],
+  "nodes": [
+    { "id": "src", "type": "external", "label": "Fortran/.pyf", "sublabel": "run_main 入口", "stage": 0, "row": 0 },
+    { "id": "crack", "type": "backend", "label": "crackfortran", "sublabel": "→ AST 字典", "stage": 1, "row": 0 },
+    { "id": "rules", "type": "security", "label": "rules/capi_maps", "sublabel": "类型签名映射", "stage": 2, "row": 0 },
+    { "id": "gen", "type": "backend", "label": "cfuncs/buildmodules", "sublabel": "module.c + wrappers", "stage": 3, "row": 0 },
+    { "id": "rt", "type": "backend", "label": "fortranobject.c", "sublabel": "运行时", "stage": 3, "row": 1 },
+    { "id": "cc", "type": "external", "label": "编译器→.so", "sublabel": "外部 C/Fortran", "stage": 4, "row": 0 }
+  ],
+  "flows": [
+    { "from": "src", "to": "crack", "label": "源文件", "variant": "emphasis" },
+    { "from": "crack", "to": "rules", "label": "AST 字典" },
+    { "from": "rules", "to": "gen", "label": "签名模板" },
+    { "from": "gen", "to": "cc", "label": ".c/.f", "variant": "emphasis" },
+    { "from": "rt", "to": "cc", "label": "fortranobject", "variant": "dashed" }
+  ]
+}

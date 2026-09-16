@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "ufunc 普通调用关键路径时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1200, 800],
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "py", "type": "external", "label": "Python", "sublabel": "用户代码" },
+    { "id": "fastcall", "type": "backend", "label": "fastcall", "sublabel": "参数解析" },
+    { "id": "dispatch", "type": "backend", "label": "分发器", "sublabel": "promote+resolve" },
+    { "id": "method", "type": "backend", "label": "ArrayMethod", "sublabel": "算子实现" },
+    { "id": "iter", "type": "messagebus", "label": "NpyIter", "sublabel": "广播迭代器" },
+    { "id": "loop", "type": "backend", "label": "strided_loop", "sublabel": "SIMD 内核" }
+  ],
+  "segments": [
+    { "from": 150, "to": 250, "label": "参数解析" },
+    { "from": 260, "to": 430, "label": "类型提升与分发" },
+    { "from": 440, "to": 620, "label": "迭代执行" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "py", "to": "fastcall", "y": 160, "label": "ufunc(args, out=)", "variant": "emphasis" },
+    { "id": "m2", "from": "fastcall", "to": "dispatch", "y": 290, "label": "promote_and_get_ufuncimpl" },
+    { "id": "m3", "from": "dispatch", "to": "method", "y": 340, "label": "resolve_implementation_info 遍历 _loops" },
+    { "id": "m4", "from": "method", "to": "dispatch", "y": 380, "label": "返回匹配项", "variant": "return" },
+    { "id": "m5", "from": "dispatch", "to": "fastcall", "y": 410, "label": "选中 ArrayMethod", "variant": "return" },
+    { "id": "m6", "from": "fastcall", "to": "iter", "y": 470, "label": "NpyIter_AdvancedNew 建迭代器" },
+    { "id": "m7", "from": "iter", "to": "method", "y": 510, "label": "get_strided_loop 固定 stride" },
+    { "id": "m8", "from": "method", "to": "fastcall", "y": 540, "label": "strided_loop 函数指针", "variant": "return" },
+    { "id": "m9", "from": "fastcall", "to": "loop", "y": 570, "label": "do strided_loop(...) while iternext" },
+    { "id": "m10", "from": "loop", "to": "fastcall", "y": 600, "label": "逐块处理完成", "variant": "return" },
+    { "id": "m11", "from": "fastcall", "to": "py", "y": 660, "label": "结果数组", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "fastcall", "from": 160, "to": 660, "type": "backend" },
+    { "participant": "dispatch", "from": 290, "to": 410, "type": "backend" },
+    { "participant": "loop", "from": 570, "to": 600, "type": "backend" }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "iteration-indexing 叶子架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1280, 760]
+  },
+  "components": [
+    { "id": "python", "type": "external", "label": "Python for-loop / 索引", "sublabel": "arr[i] / for x in arr", "pos": [60, 320], "size": [180, 60] },
+    { "id": "seq-proto", "type": "backend", "label": "sequence 协议", "sublabel": "sequence.c array_as_sequence", "pos": [340, 110], "size": [190, 60] },
+    { "id": "iter-type", "type": "backend", "label": "PyArrayIter_Type", "sublabel": "iterators.c:1096 逐元素迭代器", "pos": [340, 320], "size": [200, 60], "tag": "主迭代器" },
+    { "id": "multiiter", "type": "backend", "label": "PyArrayMultiIter_Type", "sublabel": "iterators.c:1520 广播多迭代", "pos": [680, 110], "size": [210, 60] },
+    { "id": "neighiter", "type": "backend", "label": "PyArrayNeighborhoodIter", "sublabel": "iterators.c:1803 邻域迭代", "pos": [680, 320], "size": [210, 60] },
+    { "id": "item-select", "type": "backend", "label": "item_selection", "sublabel": "item_selection.c 花哨索引", "pos": [680, 530], "size": [200, 60] },
+    { "id": "nditer", "type": "external", "label": "NpyIter（现代迭代器）", "sublabel": "nditer_constr/nditer_api", "pos": [1020, 320], "size": [200, 60] },
+    { "id": "ndarray-obj", "type": "external", "label": "ndarray-object 叶子", "sublabel": "被迭代数组", "pos": [340, 530], "size": [200, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "迭代与索引 C 层（本叶子）", "wraps": ["seq-proto", "iter-type", "multiiter", "neighiter", "item-select"] },
+    { "kind": "region", "label": "外部 / 相邻", "wraps": ["python", "nditer", "ndarray-obj"] }
+  ],
+  "connections": [
+    { "id": "u-seq", "from": "python", "to": "seq-proto", "label": "sq_item/contains" },
+    { "id": "u-iter", "from": "python", "to": "iter-type", "label": "iter(arr)", "variant": "emphasis" },
+    { "id": "seq-iter", "from": "seq-proto", "to": "iter-type", "fromSide": "bottom", "toSide": "top", "label": "序列→迭代", "labelDy": 20 },
+    { "id": "iter-multi", "from": "iter-type", "to": "multiiter", "label": "多数组广播" },
+    { "id": "iter-neigh", "from": "iter-type", "to": "neighiter", "label": "邻域遍历" },
+    { "id": "select-iter", "from": "item-select", "to": "iter-type", "label": "索引选元素" },
+    { "id": "iter-nd", "from": "iter-type", "to": "ndarray-obj", "fromSide": "bottom", "toSide": "top", "label": "步进访问", "labelDy": 20 },
+    { "id": "multi-nditer", "from": "multiiter", "to": "nditer", "label": "现代路径" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "三代迭代器", "items": [
+      "PyArrayIter_Type：逐元素一维迭代（旧式）",
+      "PyArrayMultiIter_Type：广播多数组迭代",
+      "NpyIter：现代通用广播迭代器（相邻文件）"
+    ]},
+    { "dot": "amber", "title": "索引", "items": [
+      "sequence.c：sq_length/sq_item/sq_contains",
+      "item_selection.c：花哨索引/布尔掩码/整数数组",
+      "array_concat 显式报错引导 np.concatenate"
+    ]}
+  ]
+}

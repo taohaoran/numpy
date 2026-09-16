@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "生成器与分布采样（generator-distributions）架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 560]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "rng.normal()", "pos": [40, 220], "size": [120, 55] },
+    { "id": "generator", "type": "backend", "label": "Generator", "sublabel": "分布采样接口", "pos": [250, 100], "size": [160, 60], "tag": "cdef class" },
+    { "id": "bounded", "type": "backend", "label": "_bounded_integers", "sublabel": "有界整数采样", "pos": [250, 240], "size": [160, 55] },
+    { "id": "cgen", "type": "database", "label": "distributions C", "sublabel": "src/distributions/*.c", "pos": [600, 100], "size": [170, 60] },
+    { "id": "bitgen", "type": "database", "label": "BitGenerator", "sublabel": "随机位源 Capsule", "pos": [600, 240], "size": [170, 55] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Cython 层", "wraps": ["generator", "bounded"] },
+    { "kind": "region", "label": "C 核心", "wraps": ["cgen", "bitgen"] }
+  ],
+  "connections": [
+    { "id": "u-gen", "from": "user", "to": "generator", "label": "rng.normal 等", "variant": "emphasis" },
+    { "id": "gen-cgen", "from": "generator", "to": "cgen", "label": "分布采样" },
+    { "id": "gen-bg", "from": "generator", "to": "bitgen", "label": "next64/double" },
+    { "id": "bounded-bg", "from": "bounded", "to": "bitgen", "label": "rejection" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "Generator 包装 BitGenerator 的 Capsule，提供约 40 种概率分布采样方法",
+      "分布算法：Ziggurat（指数/正态）、逆变换、拒绝采样（有界整数）",
+      "_bounded_integers.pyx.in 是模板文件，经配置生成 .pyx，按位宽特化",
+      "C 分布实现在 src/distributions/，通过 bitgen_t 函数指针表调用 BitGenerator"
+    ]}
+  ]
+}

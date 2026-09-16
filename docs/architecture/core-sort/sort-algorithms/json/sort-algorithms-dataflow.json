@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "排序分派数据流",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1280, 720]
+  },
+  "stages": [
+    { "label": "入口" },
+    { "label": "分派" },
+    { "label": "算法内核" },
+    { "label": "输出" }
+  ],
+  "nodes": [
+    { "id": "np-sort", "type": "frontend", "label": "np.sort/argsort", "sublabel": "Python 调用", "stage": 0, "row": 0 },
+    { "id": "resolve", "type": "backend", "label": "resolve_descriptors", "sublabel": "canonical descr", "stage": 1, "row": 0 },
+    { "id": "cpu-dispatch", "type": "backend", "label": "NPY_CPU_DISPATCH", "sublabel": "按 dtype+CPU", "stage": 1, "row": 1 },
+    { "id": "introsort", "type": "backend", "label": "introsort", "sublabel": "快排→堆排兜底", "stage": 2, "row": 0 },
+    { "id": "timsort", "type": "backend", "label": "timsort", "sublabel": "稳定", "stage": 2, "row": 1 },
+    { "id": "radixsort", "type": "backend", "label": "radixsort", "sublabel": "整数 O(n)", "stage": 2, "row": 2 },
+    { "id": "simd", "type": "cloud", "label": "Highway/x86 SIMD", "sublabel": "外部加速", "stage": 2, "row": 3 },
+    { "id": "out", "type": "database", "label": "已排序数组", "sublabel": "输出", "stage": 3, "row": 0 }
+  ],
+  "flows": [
+    { "from": "np-sort", "to": "resolve", "label": "请求", "variant": "emphasis" },
+    { "from": "resolve", "to": "cpu-dispatch", "label": "descr", "labelDy": 24 },
+    { "from": "cpu-dispatch", "to": "introsort", "label": "通用" },
+    { "from": "cpu-dispatch", "to": "timsort", "label": "stable" },
+    { "from": "cpu-dispatch", "to": "radixsort", "label": "整数" },
+    { "from": "cpu-dispatch", "to": "simd", "label": "SIMD 可用", "variant": "dashed" },
+    { "from": "introsort", "to": "out", "label": "结果" },
+    { "from": "timsort", "to": "out", "label": "结果" },
+    { "from": "radixsort", "to": "out", "label": "结果" },
+    { "from": "simd", "to": "out", "label": "结果", "variant": "dashed" }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "ufunc 内核代码生成与 SIMD 分派管道",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 460]
+  },
+  "stages": [
+    { "label": "模板" },
+    { "label": "生成" },
+    { "label": "编译" },
+    { "label": "分派" },
+    { "label": "注册" }
+  ],
+  "nodes": [
+    { "id": "src", "type": "frontend", "label": ".src 模板", "sublabel": "手写", "stage": 0, "row": 0 },
+    { "id": "gen", "type": "backend", "label": "repeat 展开", "sublabel": "dtype 实例化", "stage": 1, "row": 0 },
+    { "id": "base", "type": "backend", "label": "baseline", "sublabel": "通用编译", "stage": 2, "row": 0 },
+    { "id": "disp", "type": "backend", "label": "dispatch", "sublabel": "AVX2/AVX512", "stage": 2, "row": 1 },
+    { "id": "cpu", "type": "messagebus", "label": "CPU 检测", "sublabel": "npy_cpu_init", "stage": 3, "row": 0 },
+    { "id": "pick", "type": "backend", "label": "选最优内核", "sublabel": "运行时", "stage": 3, "row": 1 },
+    { "id": "reg", "type": "database", "label": "_loops 表", "sublabel": "ArrayMethod", "stage": 4, "row": 0 }
+  ],
+  "flows": [
+    { "from": "src", "to": "gen", "label": "模板", "variant": "emphasis", "route": "straight" },
+    { "from": "gen", "to": "base", "label": "生成", "route": "straight" },
+    { "from": "gen", "to": "disp", "label": "生成", "route": "vertical-channel" },
+    { "from": "cpu", "to": "pick", "label": "检测", "route": "straight" },
+    { "from": "base", "to": "pick", "label": "版本", "route": "straight" },
+    { "from": "disp", "to": "pick", "label": "版本", "route": "vertical-channel" },
+    { "from": "pick", "to": "reg", "label": "绑定", "route": "straight" }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "array-utils 子系统：NumPy 公共数组辅助函数族",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1180, 640]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "NumPy 用户", "sublabel": "np.unique/median...", "pos": [40, 280], "size": [150, 60] },
+    { "id": "api", "type": "frontend", "label": "array-utils 函数族", "sublabel": "numpy/lib/_*_impl.py", "pos": [280, 280], "size": [180, 70], "tag": "均带 _dispatcher" },
+    { "id": "setops", "type": "backend", "label": "集合运算", "sublabel": "_arraysetops_impl", "pos": [580, 60], "size": [190, 64] },
+    { "id": "stats", "type": "backend", "label": "统计/数值", "sublabel": "_function_base_impl", "pos": [580, 150], "size": [190, 64] },
+    { "id": "nan", "type": "backend", "label": "NaN 感知", "sublabel": "_nanfunctions_impl", "pos": [580, 240], "size": [190, 64] },
+    { "id": "shape", "type": "backend", "label": "形状/轴向", "sublabel": "_shape_base/_twodim", "pos": [580, 330], "size": [190, 64] },
+    { "id": "type", "type": "backend", "label": "类型/scimath", "sublabel": "_type_check/_scimath", "pos": [580, 420], "size": [190, 64] },
+    { "id": "mixin", "type": "backend", "label": "运算符 Mixin", "sublabel": "mixins.py", "pos": [580, 510], "size": [190, 64] },
+    { "id": "core", "type": "database", "label": "_core 计算层", "sublabel": "ndarray / ufunc", "pos": [930, 280], "size": [170, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "numpy/lib（本仓库）", "wraps": ["api", "setops", "stats", "nan", "shape", "type", "mixin"] }
+  ],
+  "connections": [
+    { "id": "u-api", "from": "user", "to": "api", "label": "调用", "variant": "emphasis" },
+    { "id": "api-setops", "from": "api", "to": "setops", "label": "unique/isin" },
+    { "id": "api-stats", "from": "api", "to": "stats", "label": "median/quantile" },
+    { "id": "api-nan", "from": "api", "to": "nan", "label": "nanmean 等" },
+    { "id": "api-shape", "from": "api", "to": "shape", "label": "split/apply_along" },
+    { "id": "api-type", "from": "api", "to": "type", "label": "real/imag" },
+    { "id": "api-mixin", "from": "api", "to": "mixin", "label": "子类复用" },
+    { "id": "s-core", "from": "setops", "to": "core", "label": "排序/计数" },
+    { "id": "t-core", "from": "type", "to": "core", "label": "ufunc 包装" },
+    { "id": "n-core", "from": "nan", "to": "core", "label": "掩码后归约" },
+    { "id": "st-core", "from": "stats", "to": "core", "label": "归约 ufunc" },
+    { "id": "sh-core", "from": "shape", "to": "core", "label": "视图/索引" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "每个公开函数均配 _xxx_dispatcher 支持 __array_function__ 协议",
+      "nanfunctions 先 _replace_nan 掩码再调普通归约",
+      "vectorize 解析 gufunc 签名后逐元素广播",
+      "NDArrayOperatorsMixin 把算术特例方法转发到 __array_ufunc__"
+    ] }
+  ]
+}
